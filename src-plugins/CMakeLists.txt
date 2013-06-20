@@ -127,7 +127,6 @@ if (ENABLE_REGISTRATION_PLUGINS OR MEDINRIA_BUILD_ALL_PLUGINS)
   set(REG_PLUGIN_LIST 
 		undoRedoRegistration ON
 		itkProcessRegistrationDiffeomorphicDemons ON
-		displacementFieldVisualization            ON
 		)
   list(LENGTH REG_PLUGIN_LIST N)
   set(INDEX 0)
