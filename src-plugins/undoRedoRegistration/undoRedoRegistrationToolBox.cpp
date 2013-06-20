@@ -33,6 +33,12 @@ public:
     QIcon arrowCurrentStep; 
     int currentStep;
     dtkSmartPointer<undoRedoRegistration> m_UndoRedo;
+
+    // Displacement Field Visualization
+    QPushButton * saveButton;
+    QPushButton * loadButton;
+    QPushButton * warpButton;
+    registrationFactory::WarpedImageType * warpedImage;
 };
 
 undoRedoRegistrationToolBox::undoRedoRegistrationToolBox(QWidget *parent) : medRegistrationAbstractToolBox(parent), d(new undoRedoRegistrationToolBoxPrivate)
@@ -65,14 +71,45 @@ undoRedoRegistrationToolBox::undoRedoRegistrationToolBox(QWidget *parent) : medR
     layoutButtonsStack->addWidget(d->transformationStack);
     d->transformationStack->setFixedSize(180,160);
 
-    QWidget * layoutSection = new QWidget(this);
-    layoutSection->setLayout(layoutButtonsStack);
-
-    addWidget(layoutSection);
+    
 
     this->setTitle(tr("Stack of transformations"));
     connect(registrationFactory::instance(),SIGNAL(transformationAdded(int,QStringList*)),this,SLOT(addTransformationIntoList(int, QStringList*)));
     connect(registrationFactory::instance(),SIGNAL(transformationStackReset()),this,SLOT(onTransformationStackReset()));
+
+
+    //Displacement Visualization 
+    d->saveButton = new QPushButton(QPixmap("E:/Medinria-OldCode/Modules/ImageFusion/pixmaps/fieldsave.xpm"),tr("Save"),this);
+    d->loadButton = new QPushButton(QPixmap("E:/Medinria-OldCode/Modules/ImageFusion/pixmaps/fieldopen.xpm"),tr("Load"),this);
+    d->warpButton = new QPushButton(QPixmap("E:/Medinria-OldCode/Modules/ImageFusion/pixmaps/fieldupdate.xpm"),tr("Warp"),this);
+    d->warpButton->setToolTip("Display a grid warped according to the current transformation");
+    d->saveButton->setToolTip("Save the displacement (vector) field to a file");
+    d->loadButton->setToolTip("Load a displacement (vector) field");
+    d->saveButton->setMinimumHeight(45);
+    d->saveButton->setIconSize(QSize(40,40));
+    d->loadButton->setMinimumHeight(45);
+    d->loadButton->setIconSize(QSize(40,40));
+    d->warpButton->setMinimumHeight(45);
+    d->warpButton->setIconSize(QSize(40,40));
+    d->warpButton->setEnabled(true);
+    d->saveButton->setEnabled(false);
+
+    connect(d->saveButton,SIGNAL(clicked()),this,SLOT(save()));
+    connect(d->loadButton,SIGNAL(clicked()),this,SLOT(load()));
+    connect(d->warpButton,SIGNAL(clicked()),SLOT(warpGrid()));
+
+    QHBoxLayout *layoutButtonWarp = new QHBoxLayout;
+    layoutButtonWarp->addWidget(d->loadButton);
+    layoutButtonWarp->addWidget(d->saveButton);
+    layoutButtonWarp->addWidget(d->warpButton);
+    QVBoxLayout *wholeLayout = new QVBoxLayout;
+    wholeLayout->addLayout(layoutButtonsStack);
+    wholeLayout->addLayout(layoutButtonWarp);
+
+    QWidget * layoutSection = new QWidget(this);
+    layoutSection->setLayout(wholeLayout);
+
+    addWidget(layoutSection);
 }
 
 undoRedoRegistrationToolBox::~undoRedoRegistrationToolBox(void)
@@ -201,4 +238,26 @@ void undoRedoRegistrationToolBox::onRegistrationSuccess(){
     registrationFactory::instance()->getItkRegistrationFactory()->Modified();
     d->m_UndoRedo->generateOutput(true,this->parentToolBox()->process());
     this->parentToolBox()->handleOutput();
+}
+
+void undoRedoRegistrationToolBox::load()
+{
+
+}
+
+void undoRedoRegistrationToolBox::save()
+{
+
+}
+
+void undoRedoRegistrationToolBox::warpGrid()
+{
+    itk::ImageBase<3>::Pointer result = registrationFactory::instance()->getItkRegistrationFactory()->ExportWarpedImage();
+    dtkSmartPointer<dtkAbstractData> output =  dtkAbstractDataFactory::instance()->create ("itkDataImageUChar3");
+
+    if (result)
+    {
+        output->setData(result);
+        this->parentToolBox()->visualizeDisplacementField(output);
+    }
 }

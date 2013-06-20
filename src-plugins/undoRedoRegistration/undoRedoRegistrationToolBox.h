@@ -33,6 +33,11 @@ public slots:
     void addTransformationIntoList(int, QStringList*);
     void onRegistrationSuccess();
 
+    // Displacement field visualization
+    void load();
+    void save();
+    void warpGrid();
+
 private:
     undoRedoRegistrationToolBoxPrivate *d;
 };

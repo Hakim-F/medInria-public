@@ -47,10 +47,12 @@ public:
     dtkSmartPointer<medAbstractView> fixedView;
     dtkSmartPointer<medAbstractView> movingView;
     dtkSmartPointer<medAbstractView> fuseView;
+    dtkSmartPointer<medAbstractView> displacementFieldView;
 
     dtkSmartPointer<medAbstractDataImage> fixedData;
     dtkSmartPointer<medAbstractDataImage> movingData;
-    
+    dtkSmartPointer<medAbstractDataImage> displacementFieldData;
+
     dtkSmartPointer<dtkAbstractProcess> process;
     dtkSmartPointer<dtkAbstractProcess> undoRedoProcess;
 
@@ -68,6 +70,8 @@ medRegistrationSelectorToolBox::medRegistrationSelectorToolBox(QWidget *parent) 
     d->movingData = NULL;
     d->fixedView  = NULL;
     d->movingView = NULL;
+    d->displacementFieldData = NULL;
+    d->displacementFieldView = 0;
     d->process = NULL;
     d->undoRedoProcess = NULL;
     d->undoRedoToolBox = NULL;
@@ -284,6 +288,7 @@ void medRegistrationSelectorToolBox::onMovingImageDropped (const medDataIndex& i
     {
         //already one layer present
         d->fuseView->setData(d->movingData,1);
+      //  d->displacementFieldView->setData(d->movingData,0);
         if(d->undoRedoProcess)
         { 
             d->undoRedoProcess->setInput(d->fixedData,  0);
@@ -297,6 +302,8 @@ void medRegistrationSelectorToolBox::onMovingImageDropped (const medDataIndex& i
     }
     d->fuseView->reset();
     d->fuseView->update();
+
+    
     this->synchroniseWindowLevel(d->movingView); // This line will synchronise the windowlvl between the movingView and fuseView.
     this->synchroniseWindowLevel(d->fixedView); // This line will synchronise the windowlvl between the fixedView and fuseView.
     d->fuseView->blockSignals(false);
@@ -361,6 +368,19 @@ void medRegistrationSelectorToolBox::setFuseView(dtkAbstractView *view)
         return;
 
     d->fuseView = dynamic_cast <medAbstractView*> (view);
+}
+
+/** 
+ * Sets the displacementFieldView.
+ *
+ * @param view The new displacementFieldView.
+ */
+void medRegistrationSelectorToolBox::setDisplacementFieldView(dtkAbstractView *view)
+{
+    if (!view)
+        return;
+
+    d->displacementFieldView = dynamic_cast <medAbstractView*> (view);
 }
 
 //! Clears the toolbox.
@@ -647,5 +667,25 @@ void medRegistrationSelectorToolBox::synchronisePosition(const QVector3D &positi
         if (d->movingView)
             d->movingView->onPositionChanged(position);
     }
+}
+
+void medRegistrationSelectorToolBox::visualizeDisplacementField(dtkSmartPointer<dtkAbstractData> data){ 
+    
+   /* if (data){
+      //  d->displacementFieldData = data;
+        
+        d->displacementFieldView->setData(data,0);
+        // calling reset() will reset all the view parameters (position - zoom - window/level) to default
+        
+        d->displacementFieldView->update();
+        //d->displacementFieldView->update();
+    }*/
+
+    //d->displacementFieldData = d->movingData;
+
+     qDebug() <<   data->identifier();
+     d->displacementFieldView->setData(data,0);
+     d->displacementFieldView->reset();
+     d->displacementFieldView->update();
 }
 

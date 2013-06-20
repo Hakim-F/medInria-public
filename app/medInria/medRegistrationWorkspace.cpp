@@ -76,11 +76,20 @@ void medRegistrationWorkspace::setupViewContainerStack()
         //create the fuse container
         medSingleViewContainer *fuseContainer = new medSingleViewContainer(
                 this->stackedViewContainers());
+        medSingleViewContainer *displacementFieldContainer = new medSingleViewContainer(
+                this->stackedViewContainers());
         if (dtkSmartPointer<dtkAbstractView> view = dtkAbstractViewFactory::instance()->createSmartPointer("v3dView"))
         {
             view->setProperty("Closable","false"); 
             fuseContainer->setView (view);
             d->registrationToolBox->setFuseView (view);
+        }
+
+        if (dtkSmartPointer<dtkAbstractView> displacementFieldView = dtkAbstractViewFactory::instance()->createSmartPointer("v3dView"))
+        {
+            displacementFieldView->setProperty("Closable","false"); 
+            displacementFieldContainer->setView (displacementFieldView);
+            d->registrationToolBox->setDisplacementFieldView (displacementFieldView);
         }
 
         //create the compare container
@@ -90,9 +99,10 @@ void medRegistrationWorkspace::setupViewContainerStack()
                 d->registrationToolBox,SLOT(onFixedImageDropped(medDataIndex)));
         connect(compareViewContainer,SIGNAL(droppedMoving(medDataIndex)),
                 d->registrationToolBox,SLOT(onMovingImageDropped(medDataIndex)));
-
+        
         this->stackedViewContainers()->addContainer("Compare",compareViewContainer);
         this->stackedViewContainers()->addContainer("Fuse",fuseContainer);
+        this->stackedViewContainers()->addContainer("DisplacementField",displacementFieldContainer); // Activate this if undoredoplugin loaded
         this->stackedViewContainers()->lockTabs();
         setCurrentViewContainer("Compare");
     }

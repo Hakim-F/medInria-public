@@ -19,6 +19,7 @@ class REGISTRATIONFACTORY_EXPORT registrationFactory : public QObject {
 public:
 
     typedef itk::Image< float, 3 > RegImageType;
+    typedef itk::ImageRegistrationFactory<RegImageType>::WarpedImageType WarpedImageType;
 
     static registrationFactory * instance();
         

@@ -40,6 +40,8 @@ public:
     void setFuseView(dtkAbstractView *view);
     dtkAbstractView *fuseView();
 
+    void setDisplacementFieldView(dtkAbstractView *view);
+
     dtkAbstractProcess * process();
     void setProcess(dtkAbstractProcess* process);
 
@@ -49,6 +51,8 @@ public:
     QString getNameOfCurrentAlgorithm();
 
     enum typeOfOperation { algorithm, undo, redo, reset };
+
+    void visualizeDisplacementField(dtkSmartPointer<dtkAbstractData> data);
 
 signals:
     void setupLayoutCompare();
@@ -73,7 +77,6 @@ public slots:
     void synchroniseWindowLevel(QObject * sender = NULL);
     void synchronisePosition(const QVector3D &position);
 
-    
 
 private:
     medRegistrationSelectorToolBoxPrivate *d;
