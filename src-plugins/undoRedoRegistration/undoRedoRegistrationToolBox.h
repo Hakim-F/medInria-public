@@ -34,8 +34,8 @@ public slots:
     void onRegistrationSuccess();
 
     // Displacement field visualization
-    void load();
-    void save();
+    //void load(const char*);
+    void save(const char*);
     void warpGrid();
 
 private:

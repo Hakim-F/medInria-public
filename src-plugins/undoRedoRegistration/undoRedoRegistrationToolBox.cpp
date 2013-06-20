@@ -38,7 +38,7 @@ public:
     QPushButton * saveButton;
     QPushButton * loadButton;
     QPushButton * warpButton;
-    registrationFactory::WarpedImageType * warpedImage;
+    itk::ImageBase<3>::Pointer warpedImage;
 };
 
 undoRedoRegistrationToolBox::undoRedoRegistrationToolBox(QWidget *parent) : medRegistrationAbstractToolBox(parent), d(new undoRedoRegistrationToolBoxPrivate)
@@ -240,24 +240,25 @@ void undoRedoRegistrationToolBox::onRegistrationSuccess(){
     this->parentToolBox()->handleOutput();
 }
 
-void undoRedoRegistrationToolBox::load()
+/*void undoRedoRegistrationToolBox::load(const char * filename)
 {
+}*/
 
-}
-
-void undoRedoRegistrationToolBox::save()
+void undoRedoRegistrationToolBox::save(const char * filename)
 {
-
+    registrationFactory::instance()->getItkRegistrationFactory()->WriteWarpedImage(filename);
 }
 
 void undoRedoRegistrationToolBox::warpGrid()
 {
-    itk::ImageBase<3>::Pointer result = registrationFactory::instance()->getItkRegistrationFactory()->ExportWarpedImage();
+    registrationFactory::instance()->getItkRegistrationFactory()->SetWarperGridSize(32); // this values MUST depend on the size of the image , in case the image is 32x32 or 8x8, it is indeed unusual but possible.
+    // the best would be to have a slider a to be able to change the gridSize with it.
+    d->warpedImage = registrationFactory::instance()->getItkRegistrationFactory()->ExportWarpedImage();
     dtkSmartPointer<dtkAbstractData> output =  dtkAbstractDataFactory::instance()->create ("itkDataImageUChar3");
 
-    if (result)
+    if (d->warpedImage)
     {
-        output->setData(result);
+        output->setData(d->warpedImage);
         this->parentToolBox()->visualizeDisplacementField(output);
     }
 }
