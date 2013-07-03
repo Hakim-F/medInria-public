@@ -73,11 +73,20 @@ public:
             m_cb->setPaintState(PaintState::DeleteStroke);
             m_paintState = m_cb->paintState(); //update
         }
+        m_paintState(m_cb->paintState())
 
         if (m_paintState == PaintState::Stroke && mouseEvent->button() == Qt::LeftButton)
         {
             m_cb->setPaintState(PaintState::Stroke);
             m_paintState = m_cb->paintState(); //update paintState
+        }
+            {
+                m_cb->forcePaintState(PaintState::DeleteStroke);
+            }
+            else if(mouseEvent->button() == Qt::LeftButton)
+            {
+                m_cb->forcePaintState(PaintState::Stroke);
+            }
         }
 
         medAbstractViewCoordinates * coords = view->coordinates();
