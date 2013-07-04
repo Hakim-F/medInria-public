@@ -45,16 +45,15 @@
 
 namespace mseg {
 
-
-class ClickAndMoveEventFilter : public medViewEventFilter
+    class ClickAndMoveEventFilter : public medViewEventFilter
 {
 public:
     ClickAndMoveEventFilter(medSegmentationSelectorToolBox * controller, AlgorithmPaintToolbox *cb ) :
-        medViewEventFilter(),
+    medViewEventFilter(),
         m_cb(cb),
         m_paintState(PaintState::None),
         m_lastPaintState(PaintState::None)
-        {}
+    {}
 
     virtual bool mousePressEvent( medAbstractView *view, QMouseEvent *mouseEvent )
     {
@@ -66,7 +65,7 @@ public:
         {
             m_cb->setPaintState(m_lastPaintState);
             m_paintState = m_lastPaintState;
-        }
+    }
 
         if(mouseEvent->button() == Qt::RightButton) // right-click for erasing
         {
@@ -264,13 +263,11 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
     dataButtonsLayout->addWidget(m_applyButton);
     dataButtonsLayout->addWidget(m_clearMaskButton);
     layout->addLayout(dataButtonsLayout);
-
     connect (m_strokeButton,     SIGNAL(pressed()),
         this, SLOT(onStrokePressed ()));
 
     connect (m_magicWandButton, SIGNAL(pressed()),
              this,SLOT(onMagicWandPressed()));
-
     connect (m_clearMaskButton,     SIGNAL(pressed()),
         this, SLOT(onClearMaskPressed ()));
 
