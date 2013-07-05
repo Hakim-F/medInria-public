@@ -92,6 +92,7 @@ public slots:
 
 protected:
     friend class ClickAndMoveEventFilter;
+    friend class ClickEventFilter;
 
     void addStroke( medAbstractView *view, const QVector3D &vec );
     void setData( dtkAbstractData *data );
