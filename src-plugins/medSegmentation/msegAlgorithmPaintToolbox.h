@@ -55,7 +55,6 @@ class MEDVIEWSEGMENTATIONPLUGIN_EXPORT AlgorithmPaintToolbox : public medSegment
     Q_OBJECT;
 public:
 
-
     AlgorithmPaintToolbox( QWidget *parent );
     ~AlgorithmPaintToolbox();
 
@@ -97,6 +96,10 @@ public slots:
     void updateWandRegion(medAbstractView * view, QVector3D &vec);
     void updateMouseInteraction();
 
+    void onUndo();
+    void onRedo();
+    void addToStackIndex();
+
 protected:
     friend class ClickAndMoveEventFilter;
     friend class ClickEventFilter;
@@ -123,6 +126,10 @@ private:
     QPushButton *m_strokeButton;
     QPushButton *m_labelColorWidget;
     QSpinBox *m_strokeLabelSpinBox;
+    //QPushButton *m_Undo, *m_Redo;
+
+    QShortcut *undo_shortcut,*redo_shortcut;
+    
     QLabel *m_colorLabel;
 
     QSlider *m_brushSizeSlider;
@@ -149,11 +156,21 @@ private:
 
     dtkSmartPointer<medAbstractData> m_maskData;
     dtkSmartPointer<medAbstractData> m_imageData;
-
+    
     medImageMaskAnnotationData::ColorMapType m_labelColorMap;
-
+    
     typedef itk::Image<unsigned char, 3> MaskType;
+    typedef QPair<MaskType::IndexType,unsigned char> pair;
+    typedef QList<pair> * list_pair;
     MaskType::Pointer m_itkMask;
+    
+    /*QHash<medAbstractData*,QStack<MaskType*>*> * undoStacks;
+    QHash<medAbstractData*,QStack<MaskType*>*> * redoStacks;*/
+    // undo_redo_feature's attributes
+    list_pair listIndexPixel;
+    QStack<list_pair> * undo_stroke_stack, * redo_stroke_stack;
+    
+    //QStack<PaintState> state_stack;
 
     template <typename IMAGE> void RunConnectedFilter (MaskType::IndexType &index, unsigned int planeIndex);
     template <typename IMAGE> void GenerateMinMaxValuesFromImage ();
