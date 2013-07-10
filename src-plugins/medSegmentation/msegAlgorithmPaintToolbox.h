@@ -78,6 +78,7 @@ public:
 
     inline void setPaintState( PaintState::E value){m_paintState = value;}
     inline PaintState::E paintState(){return m_paintState;}
+    void setCurrentView(medAbstractView * view);
 
 public slots:
     void onStrokePressed();
@@ -98,7 +99,7 @@ public slots:
 
     void onUndo();
     void onRedo();
-    void addToStackIndex();
+    void addToStackIndex(medAbstractView * view);
 
 protected:
     friend class ClickAndMoveEventFilter;
@@ -126,8 +127,6 @@ private:
     QPushButton *m_strokeButton;
     QPushButton *m_labelColorWidget;
     QSpinBox *m_strokeLabelSpinBox;
-    //QPushButton *m_Undo, *m_Redo;
-
     QShortcut *undo_shortcut,*redo_shortcut;
     
     QLabel *m_colorLabel;
@@ -160,17 +159,19 @@ private:
     medImageMaskAnnotationData::ColorMapType m_labelColorMap;
     
     typedef itk::Image<unsigned char, 3> MaskType;
-    typedef QPair<MaskType::IndexType,unsigned char> pair;
-    typedef QList<pair> * list_pair;
     MaskType::Pointer m_itkMask;
     
-    /*QHash<medAbstractData*,QStack<MaskType*>*> * undoStacks;
-    QHash<medAbstractData*,QStack<MaskType*>*> * redoStacks;*/
-    // undo_redo_feature's attributes
-    list_pair listIndexPixel;
-    QStack<list_pair> * undo_stroke_stack, * redo_stroke_stack;
     
-    //QStack<PaintState> state_stack;
+    // undo_redo_feature's attributes
+    typedef QPair<MaskType::IndexType,unsigned char> pair;
+    typedef QList<pair> list_pair;
+
+    list_pair * listIndexPixel;
+    QHash<medAbstractView*,QStack<list_pair*>*> * undoStacks;
+    QHash<medAbstractView*,QStack<list_pair*>*> * redoStacks;
+    medAbstractView * currentView;
+    //QStack<list_pair*> *undo_stack, *redo_stack;
+
 
     template <typename IMAGE> void RunConnectedFilter (MaskType::IndexType &index, unsigned int planeIndex);
     template <typename IMAGE> void GenerateMinMaxValuesFromImage ();
