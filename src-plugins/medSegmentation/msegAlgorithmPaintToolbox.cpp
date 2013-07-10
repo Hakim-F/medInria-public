@@ -65,7 +65,7 @@ public:
         {
             m_cb->setPaintState(m_lastPaintState);
             m_paintState = m_lastPaintState;
-            m_cb->addToStackIndex();
+            m_cb->addToStackIndex(view);
     }
 
         if(mouseEvent->button() == Qt::RightButton) // right-click for erasing
@@ -120,6 +120,7 @@ public:
             return false;
 
         medAbstractViewCoordinates * coords = view->coordinates();
+        m_cb->setCurrentView(view);
         mouseEvent->accept();
 
         if (coords->is2D())
@@ -139,7 +140,7 @@ public:
         m_paintState = PaintState::None; //Painting is done
         m_cb->updateStroke(this,view);
         this->m_points.clear();
-            m_cb->addToStackIndex();
+            m_cb->addToStackIndex(view);
         return true;
     }
 
@@ -310,26 +311,16 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
 
     showButtons(false);
 
-   /* m_Undo = new QPushButton(tr("Undo"),this);
-    m_Redo = new QPushButton(tr("Redo"),this);
-    QHBoxLayout * undoRedoButtonsLayout = new QHBoxLayout();
-    undoRedoButtonsLayout->addWidget(m_Undo);
-    undoRedoButtonsLayout->addWidget(m_Redo);
-    layout->addLayout(undoRedoButtonsLayout);*/
-
     undo_shortcut = new QShortcut(QKeySequence(tr("Ctrl+z","Undo segmentation")),this);
     redo_shortcut = new QShortcut(QKeySequence(tr("Ctrl+y","Redo segmentation")),this);
 
-    /*undoStacks = new QHash<medAbstractData*,QStack<MaskType*>*>();
-    redoStacks = new QHash<medAbstractData*,QStack<MaskType*>*>();*/
-    //undo_stroke_stack = new QStack<MaskType::Pointer>();
-    //redo_stroke_stack = new QStack<MaskType::Pointer>();
-    undo_stroke_stack = new QStack<list_pair>();
-    redo_stroke_stack = new QStack<list_pair>();
-    listIndexPixel = new QList<pair>();
 
-    /*connect(m_Undo,SIGNAL(clicked()),this,SLOT(onUndoClicked()));
-    connect(m_Redo,SIGNAL(clicked()),this,SLOT(onRedoClicked()));*/
+    undoStacks = new QHash<medAbstractView*,QStack<list_pair*>*>();
+    redoStacks = new QHash<medAbstractView*,QStack<list_pair*>*>();
+    //undo_stack = new QStack<list_pair*>();
+    //redo_stack = new QStack<list_pair*>();
+    listIndexPixel = new list_pair();
+    
     connect(undo_shortcut,SIGNAL(activated()),this,SLOT(onUndo()));
     connect(redo_shortcut,SIGNAL(activated()),this,SLOT(onRedo()));
 }
@@ -1055,111 +1046,81 @@ void AlgorithmPaintToolbox::updateMouseInteraction() //Apply the current interac
 
 void AlgorithmPaintToolbox::onUndo()
 {
-    //if (m_imageTest)
-      //  return;
-    /*if (!undoStacks->contains(m_imageTest))
+    if (!undoStacks->contains(currentView))
         return;
-    if (!redoStacks->contains(m_imageTest))
-    {
-        QStack<MaskType*> * redo_stroke_stack = new QStack<MaskType*>();
-        undoStacks->insert(m_imageTest,redo_stroke_stack);
-    }
 
-    QStack<MaskType*> * undo_stroke_stack = undoStacks->value(m_imageTest);
-    QStack<MaskType*> * redo_stroke_stack = redoStacks->value(m_imageTest);
-    
-    redo_stroke_stack->append(undo_stroke_stack->pop());
+    QStack<list_pair*> * undo_stack = undoStacks->value(currentView);
 
-    if (undo_stroke_stack->size()>0){ 
-        m_itkMask = undo_stroke_stack->top();
-        m_itkMask->Modified();
-        m_itkMask->GetPixelContainer()->Modified();
-        m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());
-        m_maskAnnotationData->invokeModified();
-    }*/
-    
- /*   if (undo_stroke_stack->size()>1)
-        redo_stroke_stack->append(undo_stroke_stack->pop());
-    
-    if (undo_stroke_stack->size()>0)
-    {
-        m_maskData->setData(undo_stroke_stack->top());*/
-       /* m_itkMask->Modified();
-        m_itkMask->GetPixelContainer()->Modified();
-        m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());*/
-        //m_maskAnnotationData->invokeModified();
-   // }
+    if (undo_stack->isEmpty())
+        return;
 
-    if (undo_stroke_stack->size()<1) // A REVOIR
+    if (!redoStacks->contains(currentView))
+        redoStacks->insert(currentView,new QStack<list_pair*>());
+
+    QStack<list_pair*> * redo_stack = redoStacks->value(currentView);
+    redo_stack->append(undo_stack->pop());
+
+    m_itkMask->FillBuffer( medSegmentationSelectorToolBox::MaskPixelValues::Unset ); // clear mask
+    for(int k =0;k<undo_stack->size();k++)
     {
-        onClearMaskPressed();// clear mask A REVOIR
-    }
-    else
-    {
-        redo_stroke_stack->append(undo_stroke_stack->pop());
-        m_itkMask->FillBuffer( medSegmentationSelectorToolBox::MaskPixelValues::Unset ); // clear mask
-        for(int k =0;k<undo_stroke_stack->size();k++)
+        list_pair * list = undo_stack->at(k);
+        for(int i = 0;i<list->size();i++)
         {
-            QList<pair> * list = undo_stroke_stack->at(k);
-            for(int i = 0;i<list->size();i++)
-            {
-                m_itkMask->SetPixel( list->at(i).first, list->at(i).second);    
-            }
+            m_itkMask->SetPixel( list->at(i).first, list->at(i).second);    
         }
-        m_itkMask->Modified();
-        m_itkMask->GetPixelContainer()->Modified();
-        m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());
-        m_maskAnnotationData->invokeModified();
     }
+    m_itkMask->Modified();
+    m_itkMask->GetPixelContainer()->Modified();
+    m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());
+    m_maskAnnotationData->invokeModified();
 }
 
 void AlgorithmPaintToolbox::onRedo()
 {
-    /*if (m_imageTest.isNull())
-        return;*/
-    /*if (!undoStacks->contains(m_imageTest))
-        return;
-    if (!redoStacks->contains(m_imageTest))
+    if (!redoStacks->contains(currentView))
         return;
 
-    QStack<MaskType*> * undo_stroke_stack = undoStacks->value(m_imageTest);
-    QStack<MaskType*> * redo_stroke_stack = redoStacks->value(m_imageTest);
-    
-    undo_stroke_stack->append(redo_stroke_stack->pop());
-    
-    if (undo_stroke_stack->size()>0){ 
-        m_itkMask = undo_stroke_stack->top();
-        m_itkMask->Modified();
-        m_itkMask->GetPixelContainer()->Modified();
-        m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());
-        m_maskAnnotationData->invokeModified();
-    }*/
+    QStack<list_pair*> * redo_stack = redoStacks->value(currentView);
+    QStack<list_pair*> * undo_stack = undoStacks->value(currentView);
 
-    if (redo_stroke_stack->size()>0)
+    if (redo_stack->isEmpty())
+        return;
+
+    undo_stack->append(redo_stack->pop());
+
+    m_itkMask->FillBuffer( medSegmentationSelectorToolBox::MaskPixelValues::Unset ); // clear mask
+
+    for(int k =0;k<undo_stack->size();k++)
     {
-        undo_stroke_stack->append(redo_stroke_stack->pop());
-
-        m_itkMask->FillBuffer( medSegmentationSelectorToolBox::MaskPixelValues::Unset ); // clear mask
-        
-        for(int k =0;k<undo_stroke_stack->size();k++)
+        list_pair * list = undo_stack->at(k);
+        for(int i = 0;i<list->size();i++)
         {
-            QList<pair> * list = undo_stroke_stack->at(k);
-            for(int i = 0;i<list->size();i++)
-            {
-                m_itkMask->SetPixel( list->at(i).first, list->at(i).second);    
-            }
+            m_itkMask->SetPixel( list->at(i).first, list->at(i).second);    
         }
-        m_itkMask->Modified();
-        m_itkMask->GetPixelContainer()->Modified();
-        m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());
-        m_maskAnnotationData->invokeModified();
+    }
+    m_itkMask->Modified();
+    m_itkMask->GetPixelContainer()->Modified();
+    m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());
+    m_maskAnnotationData->invokeModified();
+}
+
+void AlgorithmPaintToolbox::addToStackIndex(medAbstractView * view)
+{
+    qDebug() << "view dans table hash : " << undoStacks->contains(view);
+    if (undoStacks->contains(view))
+        undoStacks->value(view)->append(new list_pair(*listIndexPixel));
+    else
+    {
+        undoStacks->insert(view,new QStack<list_pair*>());
+        undoStacks->value(view)->append(new list_pair(*listIndexPixel));
+        listIndexPixel->clear();
+        if (redoStacks->contains(view))
+            redoStacks->value(view)->clear();
     }
 }
 
-void AlgorithmPaintToolbox::addToStackIndex()
-{
-    undo_stroke_stack->append(new QList<pair>(*listIndexPixel));
-    listIndexPixel->clear();
+void AlgorithmPaintToolbox::setCurrentView(medAbstractView * view){
+    currentView = view;   
 }
 
 } // namespace mseg
