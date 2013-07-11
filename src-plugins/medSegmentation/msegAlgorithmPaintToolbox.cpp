@@ -89,7 +89,7 @@ public:
                 m_cb->forcePaintState(PaintState::Stroke);
             }
         }
-
+        m_cb->setCurrentView(view);
         medAbstractViewCoordinates * coords = view->coordinates();
         mouseEvent->accept();
 
@@ -317,8 +317,7 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
 
     undoStacks = new QHash<medAbstractView*,QStack<list_pair*>*>();
     redoStacks = new QHash<medAbstractView*,QStack<list_pair*>*>();
-    //undo_stack = new QStack<list_pair*>();
-    //redo_stack = new QStack<list_pair*>();
+    currentView = NULL;
     listIndexPixel = new list_pair();
     
     connect(undo_shortcut,SIGNAL(activated()),this,SLOT(onUndo()));
@@ -1046,6 +1045,9 @@ void AlgorithmPaintToolbox::updateMouseInteraction() //Apply the current interac
 
 void AlgorithmPaintToolbox::onUndo()
 {
+    if (currentView==NULL)
+        return;
+
     if (!undoStacks->contains(currentView))
         return;
 
@@ -1077,6 +1079,9 @@ void AlgorithmPaintToolbox::onUndo()
 
 void AlgorithmPaintToolbox::onRedo()
 {
+    if (currentView==NULL)
+        return;
+
     if (!redoStacks->contains(currentView))
         return;
 
@@ -1106,6 +1111,9 @@ void AlgorithmPaintToolbox::onRedo()
 
 void AlgorithmPaintToolbox::addToStackIndex(medAbstractView * view)
 {
+    if (currentView==NULL)
+        return;
+
     qDebug() << "view dans table hash : " << undoStacks->contains(view);
     if (undoStacks->contains(view))
         undoStacks->value(view)->append(new list_pair(*listIndexPixel));
@@ -1113,10 +1121,10 @@ void AlgorithmPaintToolbox::addToStackIndex(medAbstractView * view)
     {
         undoStacks->insert(view,new QStack<list_pair*>());
         undoStacks->value(view)->append(new list_pair(*listIndexPixel));
-        listIndexPixel->clear();
-        if (redoStacks->contains(view))
-            redoStacks->value(view)->clear();
     }
+    listIndexPixel->clear();
+    if (redoStacks->contains(view))
+            redoStacks->value(view)->clear();
 }
 
 void AlgorithmPaintToolbox::setCurrentView(medAbstractView * view){
