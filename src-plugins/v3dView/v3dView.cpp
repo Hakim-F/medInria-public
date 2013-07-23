@@ -381,6 +381,7 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
     d->view2d->SetBackground ( 0.0, 0.0, 0.0 );
     d->view2d->SetLeftButtonInteractionStyle ( vtkInteractorStyleImageView2D::InteractionTypeZoom );
     d->view2d->SetMiddleButtonInteractionStyle ( vtkInteractorStyleImageView2D::InteractionTypePan );
+    d->view2d->SetKeyboardInteractionStyle ( vtkInteractorStyleImageView2D::InteractionTypeSlice);
     d->view2d->SetViewOrientation ( vtkImageView2D::VIEW_ORIENTATION_AXIAL );
     d->view2d->CursorFollowMouseOff();
     d->view2d->ShowImageAxisOff();
@@ -499,7 +500,7 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
 
     d->vtkWidget = new QVTKWidget ( d->widget );
     d->vtkWidget->setSizePolicy ( QSizePolicy::Minimum, QSizePolicy::Minimum );
-    d->vtkWidget->setFocusPolicy ( Qt::NoFocus );
+    d->vtkWidget->setFocusPolicy ( Qt::ClickFocus);
 
     d->renWin = vtkRenderWindow::New();
     d->renWin->StereoCapableWindowOn();
