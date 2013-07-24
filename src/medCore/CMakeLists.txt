@@ -44,6 +44,7 @@ set(${PROJECT_NAME}_DEVEL_HEADERS_MOC
   medViewEventFilter.h
   annotationData/medImageMaskAnnotationData.h
   annotationData/medSeedPointAnnotationData.h
+  medShortcutFactory.h
 )
 
 set(${PROJECT_NAME}_DEVEL_HEADERS
@@ -100,6 +101,7 @@ set(${PROJECT_NAME}_SOURCES
   medViewEventFilter.cpp
   annotationData/medImageMaskAnnotationData.cpp
   annotationData/medSeedPointAnnotationData.cpp
+  medShortcutFactory.cpp
 )
 
 #   Wrapping
