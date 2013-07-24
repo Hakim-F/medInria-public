@@ -51,6 +51,7 @@
 #include <vtkInteractorStyleImageView2D.h>
 #include <vtkInteractorStyleTrackballCamera2.h>
 #include <vtkInteractorStyleTrackballActor.h>
+#include <vtkInteractorStyleRubberBandZoom.h>
 #include <vtkImageViewCollection.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
@@ -200,6 +201,30 @@ void v3dViewObserver::Execute ( vtkObject *caller, unsigned long event, void *ca
     }
 
     break;
+
+
+    case vtkCommand::KeyPressEvent:
+    {
+        vtkRenderWindowInteractor *iren = static_cast<vtkRenderWindowInteractor*>(caller);
+        if (iren->GetControlKey())
+        {
+            if (view->property("MouseInteraction")=="Zooming")
+                view->setProperty( "ZoomMode" , "RubberBand" );
+        }
+    }
+
+    break;
+    case vtkCommand::KeyReleaseEvent:
+    {
+        vtkRenderWindowInteractor *iren = static_cast<vtkRenderWindowInteractor*>(caller);
+        if (!iren->GetControlKey())
+        {
+            if (view->property("ZoomMode")=="RubberBand")
+                view->setProperty( "ZoomMode" , "Normal" );
+        }
+    }
+
+    break;
     }
 }
 
@@ -272,6 +297,9 @@ public:
     vtkSmartPointer<vtkRenderer> overlayRenderer2d;
     vtkImageView2D *view2d;
     vtkImageView3D *view3d;
+
+    vtkInteractorStyle *interactorStyle2D;
+    vtkInteractorStyle *interactorStyle3D;
 
     vtkImageView *currentView;
 
@@ -361,6 +389,7 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
     d->setPropertyFunctions["UseLOD"] = &v3dView::onUseLODPropertySet;
     d->setPropertyFunctions["Preset"] = &v3dView::onPresetPropertySet;
     d->setPropertyFunctions["Cropping"] = &v3dView::onCroppingPropertySet;
+    d->setPropertyFunctions["ZoomMode"] = &v3dView::onZoomModePropertySet;
     d->setPropertyFunctions["PositionLinked"] = &v3dView::onPositionLinkedPropertySet;
     d->setPropertyFunctions["WindowingLinked"] = &v3dView::onWindowingLinkedPropertySet;
     d->setPropertyFunctions["DepthPeeling"] = &v3dView::onDepthPeelingPropertySet;
@@ -501,7 +530,7 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
     d->vtkWidget = new QVTKWidget ( d->widget );
     d->vtkWidget->setSizePolicy ( QSizePolicy::Minimum, QSizePolicy::Minimum );
     d->vtkWidget->setFocusPolicy ( Qt::ClickFocus);
-
+    
     d->renWin = vtkRenderWindow::New();
     d->renWin->StereoCapableWindowOn();
     d->renWin->SetStereoTypeToCrystalEyes();
@@ -563,6 +592,12 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
     d->view2d->GetInteractorStyle()->AddObserver ( vtkImageView2DCommand::CameraZoomEvent, d->observer, 0 );
     d->view2d->GetInteractorStyle()->AddObserver ( vtkImageView2DCommand::CameraPanEvent, d->observer, 0 );
     d->view3d->GetInteractorStyle()->AddObserver ( vtkCommand::InteractionEvent, d->observer, 0 );
+
+    d->view2d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::KeyPressEvent,d->observer,0);
+    d->view2d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::KeyReleaseEvent,d->observer,0);
+
+    d->interactorStyle2D = d->view2d->GetInteractorStyle();
+    d->interactorStyle3D = d->view3d->GetInteractorStyle();
 
     // 3D mode
     QAction *vrAct = new QAction ( tr ( "VR" ), d->vtkWidget );
@@ -642,6 +677,9 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
     this->setProperty ( "WindowingLinked",  "false" );
     this->setProperty ( "Daddy",            "false" );
     this->setProperty ( "Closable",         "true"  );
+
+    this->addProperty ("ZoomMode",QStringList() << "Normal" << "RubberBand" );
+    this->setProperty ( "ZoomMode" , "Normal" );
 
     int colorIndex = d->nextColorIndex;
     if ( colorIndex >= d->presetColors.size() )
@@ -1435,6 +1473,19 @@ void v3dView::onMouseInteractionPropertySet ( const QString &value )
         d->view2d->ShowDistanceWidgetOff();
     }
 }
+
+void v3dView::onZoomModePropertySet ( const QString &value )
+{
+    if ( value=="RubberBand" )
+    {
+        vtkInteractorStyleRubberBandZoom * interactorStyle = vtkInteractorStyleRubberBandZoom::New();
+        d->view2d->GetInteractor()->SetInteractorStyle(interactorStyle);
+        interactorStyle->Delete();
+    }
+    else 
+        d->view2d->GetInteractor()->SetInteractorStyle(d->interactorStyle2D);
+}
+
 QString v3dView::getPreset ( int layer ) const
 {
     if ( layer < d->PresetList.size() )
