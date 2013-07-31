@@ -210,6 +210,8 @@ void v3dViewObserver::Execute ( vtkObject *caller, unsigned long event, void *ca
         {
             if (view->property("MouseInteraction")=="Zooming")
                 view->setProperty( "ZoomMode" , "RubberBand" );
+
+            view->activateCircleCursor(true,30);
         }
     }
 
@@ -696,6 +698,7 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
     connect ( d->slider,       SIGNAL ( valueChanged ( int ) ),            this, SLOT ( onZSliderValueChanged ( int ) ) );
 
     connect ( d->widget, SIGNAL ( destroyed() ), this, SLOT ( widgetDestroyed() ) );
+
 }
 
 v3dView::~v3dView()
@@ -2561,4 +2564,31 @@ void v3dView::setCurrentLayer(int layer)
     medAbstractView::setCurrentLayer(layer);
     d->view2d->SetCurrentLayer(layer);
     d->view3d->SetCurrentLayer(layer);
+}
+
+void v3dView::activateCircleCursor(bool val,unsigned int radius)
+{
+    vtkInteractorStyleImageView2D * style= static_cast<vtkInteractorStyleImageView2D*>(d->view2d->GetInteractor()->GetInteractorStyle());
+    //style->SetCircleCursorOn(val);
+    /*
+    if (!val)
+    {
+        style->GetInteractor()->GetRenderWindow()->ShowCursor();
+        return;
+    }
+
+    style->GetInteractor()->GetRenderWindow()->HideCursor();
+
+    if (!style->GetCircleCursor())
+        style->SetCircleCursor(vtkCircleCursor::New());
+
+    if (!style->GetCircleCursor()->GetRenWin())
+        style->GetCircleCursor()->SetRenWin(style->GetInteractor()->GetRenderWindow());
+*/
+    if (val)
+        style->CircleCursorOn();
+    else
+        style->CircleCursorOff();
+
+    style->GetCircleCursor()->SetRadius(radius); //30->8 40->10 with the spacing = 0.5 in I1 image
 }
