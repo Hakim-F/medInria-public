@@ -211,7 +211,7 @@ void v3dViewObserver::Execute ( vtkObject *caller, unsigned long event, void *ca
             if (view->property("MouseInteraction")=="Zooming")
                 view->setProperty( "ZoomMode" , "RubberBand" );
 
-            view->activateCircleCursor(true,30);
+//            view->activateCircleCursor(true,30);
         }
     }
 
