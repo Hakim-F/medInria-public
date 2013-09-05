@@ -109,6 +109,9 @@ medAbstractView::medAbstractView(medAbstractView *parent) : dtkAbstractView(pare
                        << "Red on White" << "Glossy");
     // image interaction
     this->addProperty ("MouseInteraction",      QStringList() << "Zooming" << "Windowing" << "Slicing" << "Measuring");
+    
+    // Type of cursor
+    this->addProperty("Cursor",QStringList() << "Normal" << "None");
 
     // do not set properties, leave it to subclass
 }

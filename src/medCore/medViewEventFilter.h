@@ -63,6 +63,8 @@ protected:
     virtual bool mouseReleaseEvent( medAbstractView *view, QMouseEvent *mouseEvent );
     virtual bool mouseMoveEvent( medAbstractView *view, QMouseEvent *mouseEvent );
     virtual bool mouseWheelEvent( medAbstractView *view, QWheelEvent *wheelEvent );
+    virtual bool leaveEvent( medAbstractView *view, QEvent *leaveEvent );
+    virtual bool enterEvent( medAbstractView *view, QEvent *enterEvent );
 
     /** Event handlers, derived classes should override those they need.
      *  \return     true if the event was processed and should not be passed to the next handler.

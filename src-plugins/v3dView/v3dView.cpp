@@ -205,7 +205,7 @@ void v3dViewObserver::Execute ( vtkObject *caller, unsigned long event, void *ca
 
     case vtkCommand::KeyPressEvent:
     {
-        vtkRenderWindowInteractor *iren = static_cast<vtkRenderWindowInteractor*>(caller);
+        vtkRenderWindowInteractor *iren = dynamic_cast<vtkRenderWindowInteractor*>(caller);
         if (iren->GetControlKey())
         {
             if (view->property("MouseInteraction")=="Zooming")
@@ -218,7 +218,7 @@ void v3dViewObserver::Execute ( vtkObject *caller, unsigned long event, void *ca
     break;
     case vtkCommand::KeyReleaseEvent:
     {
-        vtkRenderWindowInteractor *iren = static_cast<vtkRenderWindowInteractor*>(caller);
+        vtkRenderWindowInteractor *iren = dynamic_cast<vtkRenderWindowInteractor*>(caller);
         if (!iren->GetControlKey())
         {
             if (view->property("ZoomMode")=="RubberBand")
@@ -395,6 +395,7 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
     d->setPropertyFunctions["PositionLinked"] = &v3dView::onPositionLinkedPropertySet;
     d->setPropertyFunctions["WindowingLinked"] = &v3dView::onWindowingLinkedPropertySet;
     d->setPropertyFunctions["DepthPeeling"] = &v3dView::onDepthPeelingPropertySet;
+    d->setPropertyFunctions["Cursor"] = &v3dView::onCursorPropertySet;
 
     d->data       = 0;
     d->imageData  = 0;
@@ -683,6 +684,8 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
 
     this->addProperty ("ZoomMode",QStringList() << "Normal" << "RubberBand" );
     this->setProperty ( "ZoomMode" , "Normal" );
+
+    this->setProperty("Cursor","Normal");
 
     int colorIndex = d->nextColorIndex;
     if ( colorIndex >= d->presetColors.size() )
@@ -1488,6 +1491,20 @@ void v3dView::onZoomModePropertySet ( const QString &value )
     }
     else 
         d->view2d->GetInteractor()->SetInteractorStyle(d->interactorStyle2D);
+}
+
+void v3dView::onCursorPropertySet(const QString &value)
+{
+    if (value =="None")
+    {
+        d->view2d->GetInteractor()->HideCursor();
+        d->view3d->GetInteractor()->HideCursor();
+    }
+    else
+    {
+        d->view2d->GetInteractor()->ShowCursor();
+        d->view3d->GetInteractor()->ShowCursor();
+    }
 }
 
 QString v3dView::getPreset ( int layer ) const
