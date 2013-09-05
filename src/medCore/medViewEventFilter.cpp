@@ -98,6 +98,15 @@ bool medViewEventFilter::mouseWheelEvent( medAbstractView *view, QWheelEvent *wh
     return false;
 }
 
+bool medViewEventFilter::leaveEvent( medAbstractView *view, QEvent *leaveEvent )
+{
+    return false;
+}
+
+bool medViewEventFilter::enterEvent( medAbstractView *view, QEvent *enterEvent)
+{
+    return false;
+}
 
 bool medViewEventFilter::eventFilter( QObject *obj, QEvent *event )
 {
@@ -147,6 +156,14 @@ bool medViewEventFilter::eventFilter( QObject *obj, QEvent *event )
         {
             QWheelEvent* wheelEvent = static_cast<QWheelEvent *>(event);
             return this->mouseWheelEvent( view, wheelEvent );
+        }
+    case (QEvent::Leave) :
+        {
+            return this->leaveEvent(view,event);
+        }
+    case (QEvent::Enter) :
+        {
+            return this->enterEvent(view,event);
         }
     default:
         {

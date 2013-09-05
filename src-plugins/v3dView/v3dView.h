@@ -186,6 +186,7 @@ public slots:
     void onPositionLinkedPropertySet        (const QString &value);
     void onWindowingLinkedPropertySet       (const QString &value);
     void onDepthPeelingPropertySet          (const QString &value);
+    void onCursorPropertySet                (const QString &value);
 
 public slots:
     void setSlider                          ( int value );
