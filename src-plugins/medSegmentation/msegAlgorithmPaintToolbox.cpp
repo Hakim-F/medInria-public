@@ -95,7 +95,7 @@ public:
             if (m_paintState != PaintState::Wand)
             {
                 if (m_cb->getCursorOn())
-                    m_cb->backToCurrentState();
+                    m_cb->removeCursorDisplay();
                 
                 m_cb->setCursorOn(false);
                 m_cb->undoRedoCopyPasteModeOn = false;
@@ -116,11 +116,12 @@ public:
             }
             else
             {
+                m_cb->wandTimer.start();
                 m_cb->setSeed(posImage);
                 m_cb->updateWandRegion(view, posImage);
                 if (mouseEvent->modifiers()==Qt::CTRL)
                 {
-                    m_cb->onAcceptGrowth();                
+                    m_cb->onNewSeed();                
                 }
                 m_paintState = PaintState::None; //Wand operation is over
                 m_cb->cursorJustReactivated = true;
@@ -145,11 +146,11 @@ public:
             int elapsed = timer.elapsed();
 
             qDebug() << elapsed;
-            if (elapsed<42) // 1000/24 (24 images per second)
+            if (elapsed<10) // 1000/24 (24 images per second)
                 return false;
 
             if (!m_cb->cursorJustReactivated )
-                m_cb->backToCurrentState();  
+                m_cb->removeCursorDisplay();  
             else
                 m_cb->cursorJustReactivated  = false;
 
@@ -168,7 +169,6 @@ public:
                     m_cb->setCurrentIdSlice(idSlice);
                 }
                
-                m_cb->saveCurrentStateForCursor(view,m_cb->getCurrentPlaneIndex(),m_cb->getCurrentIdSlice());
                 //Project vector onto plane
                 this->m_points.push_back(posImage);
                 m_cb->updateStroke( this,view );
@@ -224,7 +224,7 @@ public:
 
             if (view->property("Orientation")!="3D" && !m_cb->cursorJustReactivated && m_paintState!=PaintState::Stroke )
             {
-                m_cb->backToCurrentState();
+                m_cb->removeCursorDisplay();
                 m_cb->updateStroke(this,view);
             }
             return true;   
@@ -239,7 +239,7 @@ public:
         else
             return false;
         
-        m_cb->backToCurrentState();
+        m_cb->removeCursorDisplay();
         m_cb->cursorJustReactivated  = true;
 
         return true;
@@ -247,11 +247,11 @@ public:
 
     virtual bool enterEvent(medAbstractView *view, QEvent *event)
     {
-        if (m_cb->getCursorOn())
+        //if (m_cb->getCursorOn())
             /*if (m_paintState != PaintState::DeleteStroke)
                 view->setProperty("Cursor","None");*/
 
-        m_cb->setCurrentView(view);
+        //m_cb->setCurrentView(view);
         dtkAbstractData * viewData = medSegmentationSelectorToolBox::viewData( view );
         m_cb->setData( viewData );
         return true;
@@ -351,13 +351,15 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
     m_wandLowerThresholdSpinBox->setDecimals(2);
     m_wandLowerThresholdSpinBox->hide();
 
-    m_acceptGrowthButton = new QPushButton("Accept growth",this);
-    m_acceptGrowthButton->hide();
+    wandTimer = QTime();
+
+    m_newSeedButton = new QPushButton("New Seed",this);
+    m_newSeedButton->hide();
     m_removeSeedButton = new QPushButton("Remove seed",this);
     m_removeSeedButton->hide();
     seedPlanted = false;
     
-    connect(m_acceptGrowthButton,SIGNAL(clicked()),this,SLOT(onAcceptGrowth()));
+    connect(m_newSeedButton,SIGNAL(clicked()),this,SLOT(onNewSeed()));
     connect(m_removeSeedButton,SIGNAL(clicked()),this,SLOT(onRemoveSeed()));
 
     connect(m_wandUpperThresholdSlider,SIGNAL(valueChanged(int)),this,SLOT(synchronizeWandSpinBoxesAndSliders()));
@@ -379,7 +381,7 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
     magicWandLayout2->addWidget( m_wandLowerThresholdSlider );
     magicWandLayout2->addWidget( m_wandLowerThresholdSpinBox );
     QHBoxLayout * magicWandLayout3 = new QHBoxLayout();
-    magicWandLayout3->addWidget( m_acceptGrowthButton );
+    magicWandLayout3->addWidget( m_newSeedButton );
     magicWandLayout3->addWidget( m_removeSeedButton );
 
     magicWandLayout = new QFormLayout(this);
@@ -452,12 +454,12 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
     redo_shortcut = new QShortcut(QKeySequence(tr("Ctrl+y","Redo segmentation")),this);
     copy_shortcut = new QShortcut(QKeySequence(tr("Ctrl+c","Copy segmentation")),this);
     paste_shortcut = new QShortcut(QKeySequence(tr("Ctrl+v","Paste segmentation")),this);
-    acceptGrowth_shortcut = new QShortcut(QKeySequence(tr("Ctrl+Return","Accept growth")),this);
+    newSeed_shortcut = new QShortcut(QKeySequence(tr("Ctrl+Return","Accept growth")),this);
     removeSeed_shortcut = new QShortcut(QKeySequence(tr("Ctrl+BackSpace","Remove seed")),this);
     addBrushSize_shortcut = new QShortcut(QKeySequence(tr("Ctrl+Up","Add brush size")),this);
     reduceBrushSize_shortcut = new QShortcut(QKeySequence(tr("Ctrl+Down","Reduce brush size")),this);
     
-    acceptGrowth_shortcut->setEnabled(false);
+    newSeed_shortcut->setEnabled(false);
     removeSeed_shortcut->setEnabled(false);
     addBrushSize_shortcut->setEnabled(false);
     reduceBrushSize_shortcut->setEnabled(false);
@@ -471,7 +473,7 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
 
     currentView = NULL;
     cursorOn = false;
-    currentStateForCursor = NULL;
+    cursorPixels = new QList<QPair<MaskType::IndexType,unsigned char>>();
     currentPlaneIndex = 0;
     currentIdSlice = 0;
     undoRedoCopyPasteModeOn = false;
@@ -482,7 +484,7 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
     connect(redo_shortcut,SIGNAL(activated()),this,SLOT(onRedo()));
     connect(copy_shortcut,SIGNAL(activated()),this,SLOT(copySliceMask()));
     connect(paste_shortcut,SIGNAL(activated()),this,SLOT(pasteSliceMask()));
-    connect(acceptGrowth_shortcut,SIGNAL(activated()),this,SLOT(onAcceptGrowth()));
+    connect(newSeed_shortcut,SIGNAL(activated()),this,SLOT(onNewSeed()));
     connect(removeSeed_shortcut,SIGNAL(activated()),this,SLOT(onRemoveSeed()));
     connect(addBrushSize_shortcut,SIGNAL(activated()),this,SLOT(onAddBrushSize()));
     connect(reduceBrushSize_shortcut,SIGNAL(activated()),this,SLOT(onReduceBrushSize()));
@@ -525,8 +527,12 @@ void AlgorithmPaintToolbox::synchronizeWandSpinBoxesAndSliders()
 
     if (seedPlanted)
     {
+        if (m_wand3DCheckbox->isChecked() && wandTimer.elapsed()<600) // 1000/24 (24 images per second)
+            return;
+
         onUndo();
         updateWandRegion(currentView,m_seed);
+        wandTimer.start();
     }
 
     if (currentView && currentView->receiverWidget())
@@ -559,7 +565,7 @@ void AlgorithmPaintToolbox::onMagicWandToggled(bool checked)
     {
         this->m_viewFilter->removeFromAllViews();
         m_paintState = (PaintState::None);
-        onAcceptGrowth(); // accept the current growth  
+        onNewSeed(); // accept the current growth  
         updateButtons();
     }  
     else
@@ -1106,6 +1112,9 @@ void AlgorithmPaintToolbox::updateStroke( ClickAndMoveEventFilter * filter, medA
         break;
     }
 
+    if (cursorOn)
+        cursorPixels->clear();
+
     MaskType::IndexType index;
     itk::Point<ElemType,3> testPt;
     for ( int y(-Ny); y <= Ny; ++y ) {
@@ -1120,6 +1129,13 @@ void AlgorithmPaintToolbox::updateStroke( ClickAndMoveEventFilter * filter, medA
             
             bool isInside = m_itkMask->TransformPhysicalPointToIndex( testPt, index );
             if ( isInside ) {
+                if (cursorOn) 
+                {
+                    if (pxValue == m_strokeLabel && m_itkMask->GetPixel(index)!=pxValue)
+                        cursorPixels->append(QPair<MaskType::IndexType,unsigned char>(index,m_itkMask->GetPixel(index)));
+                    if (pxValue == medSegmentationSelectorToolBox::MaskPixelValues::Unset && m_itkMask->GetPixel(index)!=medSegmentationSelectorToolBox::MaskPixelValues::Unset)
+                        cursorPixels->append(QPair<MaskType::IndexType,unsigned char>(index,m_itkMask->GetPixel(index)));
+                }
                 m_itkMask->SetPixel( index, pxValue );
             }
         }
@@ -1254,7 +1270,7 @@ void AlgorithmPaintToolbox::onUndo()
 
     if (getCursorOn())
     {
-        backToCurrentState(); // before doing anything we need to remove the cursor if it is on
+        removeCursorDisplay(); // before doing anything we need to remove the cursor if it is on
         cursorOn = false;
     }
     
@@ -1278,7 +1294,7 @@ void AlgorithmPaintToolbox::onUndo()
     m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());
     m_maskAnnotationData->invokeModified();
 
-    saveCurrentStateForCursor(currentView,currentPlaneIndex,currentIdSlice);
+    //saveCurrentStateForCursor(currentView,currentPlaneIndex,currentIdSlice);
 }
 
 void AlgorithmPaintToolbox::onRedo()
@@ -1323,7 +1339,7 @@ void AlgorithmPaintToolbox::onRedo()
 
     if (getCursorOn())
     {
-        backToCurrentState(); // before doing anything we need to remove the cursor if it is on
+        removeCursorDisplay(); // before doing anything we need to remove the cursor if it is on
         cursorOn = false;
     }
 
@@ -1346,7 +1362,7 @@ void AlgorithmPaintToolbox::onRedo()
     m_itkMask->SetPipelineMTime(m_itkMask->GetMTime());
     m_maskAnnotationData->invokeModified();
     
-    saveCurrentStateForCursor(currentView,currentPlaneIndex,currentIdSlice);
+    //saveCurrentStateForCursor(currentView,currentPlaneIndex,currentIdSlice);
 }
 
 void AlgorithmPaintToolbox::addSliceToStack(medAbstractView * view,const unsigned char planeIndex,QList<int> listIdSlice)
@@ -1402,45 +1418,45 @@ void AlgorithmPaintToolbox::addSliceToStack(medAbstractView * view,const unsigne
             m_redoStacks->value(view)->clear();
 }
 
-void AlgorithmPaintToolbox::saveCurrentStateForCursor(medAbstractView * view,const unsigned char planeIndex,unsigned int idSlice)
-{
-    // save the current state for the cursor
-
-    if (!view)
-        return;
-
-    // copy code
-    MaskType::RegionType requestedRegion = m_itkMask->GetLargestPossibleRegion();
-    MaskSliceType::IndexType index2d;
-    MaskSliceType::RegionType region;
-    MaskSliceType::RegionType::SizeType size;
-    
-    unsigned int i, j;
-    char direction[2];
-    for (i = 0, j = 0; i < 3; ++i )
-    {
-        if (i != planeIndex)
-        {
-            direction[j] = i;
-            j++;
-        }
-    }
-
-    index2d[ direction[0] ]    = requestedRegion.GetIndex()[ direction[0] ];
-    index2d[ 1- direction[0] ] = requestedRegion.GetIndex()[ direction[1] ];
-    size[ direction[0] ]     = requestedRegion.GetSize()[  direction[0] ];
-    size[ 1- direction[0] ]  = requestedRegion.GetSize()[  direction[1] ];
-
-    region.SetSize(size);
-    region.SetIndex(index2d);
-
-    //if (!currentStateForCursor)
-        currentStateForCursor = MaskSliceType::New();
-    
-    currentStateForCursor->SetRegions(region);
-    currentStateForCursor->Allocate();
-    copySliceFromMask3D(currentStateForCursor,planeIndex,direction,idSlice);
-}
+//void AlgorithmPaintToolbox::saveCurrentStateForCursor(medAbstractView * view,const unsigned char planeIndex,unsigned int idSlice)
+//{
+//    // save the current state for the cursor
+//
+//    if (!view)
+//        return;
+//
+//    // copy code
+//    MaskType::RegionType requestedRegion = m_itkMask->GetLargestPossibleRegion();
+//    MaskSliceType::IndexType index2d;
+//    MaskSliceType::RegionType region;
+//    MaskSliceType::RegionType::SizeType size;
+//    
+//    unsigned int i, j;
+//    char direction[2];
+//    for (i = 0, j = 0; i < 3; ++i )
+//    {
+//        if (i != planeIndex)
+//        {
+//            direction[j] = i;
+//            j++;
+//        }
+//    }
+//
+//    index2d[ direction[0] ]    = requestedRegion.GetIndex()[ direction[0] ];
+//    index2d[ 1- direction[0] ] = requestedRegion.GetIndex()[ direction[1] ];
+//    size[ direction[0] ]     = requestedRegion.GetSize()[  direction[0] ];
+//    size[ 1- direction[0] ]  = requestedRegion.GetSize()[  direction[1] ];
+//
+//    region.SetSize(size);
+//    region.SetIndex(index2d);
+//
+//    //if (!currentStateForCursor)
+//        currentStateForCursor = MaskSliceType::New();
+//    
+//    currentStateForCursor->SetRegions(region);
+//    currentStateForCursor->Allocate();
+//    copySliceFromMask3D(currentStateForCursor,planeIndex,direction,idSlice);
+//}
 
 
 void AlgorithmPaintToolbox::onViewClosed()
@@ -1498,20 +1514,20 @@ void AlgorithmPaintToolbox::setSeedPlanted(bool val,MaskType::IndexType index,un
         }
 
         m_wandInfo->setText("Seed X : " + QString::number(index[direction[0]]) + " Y : " + QString::number(index[direction[1]]) + " Slice : " + QString::number(index[planeIndex]+1) + " Value : " + QString::number(value)); 
-        m_acceptGrowthButton->show();
+        m_newSeedButton->show();
         m_removeSeedButton->show();
-        acceptGrowth_shortcut->setEnabled(true);
+        newSeed_shortcut->setEnabled(true);
         removeSeed_shortcut->setEnabled(true);
     }
 }
 
-void AlgorithmPaintToolbox::onAcceptGrowth()
+void AlgorithmPaintToolbox::onNewSeed()
 {
     seedPlanted = false;
     m_wandInfo->setText("Select a pixel in the image to plant the seed");
-    m_acceptGrowthButton->hide();
+    m_newSeedButton->hide();
     m_removeSeedButton->hide();
-    acceptGrowth_shortcut->setEnabled(false);
+    newSeed_shortcut->setEnabled(false);
     removeSeed_shortcut->setEnabled(false);
     if (currentView && currentView->receiverWidget())
             currentView->receiverWidget()->setFocus(); // bring the focus back to the view.
@@ -1519,7 +1535,7 @@ void AlgorithmPaintToolbox::onAcceptGrowth()
 
 void AlgorithmPaintToolbox::onRemoveSeed()
 {
-    onAcceptGrowth(); // Accepting the growth will remove the seed.
+    onNewSeed(); // Accepting the growth will remove the seed.
     onUndo();
 }
 
@@ -1577,7 +1593,7 @@ void AlgorithmPaintToolbox::copySliceMask()
 
     if (getCursorOn())
     {
-        backToCurrentState(); // before doing anything we need to remove the cursor if it is on
+        removeCursorDisplay(); // before doing anything we need to remove the cursor if it is on
         cursorOn = false;
     }
 
@@ -1745,15 +1761,15 @@ void AlgorithmPaintToolbox::pasteSliceToMask3D(const itk::Image<unsigned char,2>
     }
 }
 
-void AlgorithmPaintToolbox::backToCurrentState()
+void AlgorithmPaintToolbox::removeCursorDisplay()
 {
     if (!currentView)
         return;
 
-    if (!currentStateForCursor)
-        return;
+    /*if (!currentStateForCursor)
+        return;*/
     
-    unsigned int i, j;
+    /*unsigned int i, j;
     char direction[2];
     for (i = 0, j = 0; i < 3; ++i )
     {
@@ -1763,8 +1779,10 @@ void AlgorithmPaintToolbox::backToCurrentState()
             j++;
         }
     }
-
-    pasteSliceToMask3D(currentStateForCursor,currentPlaneIndex,direction,currentIdSlice);
+*/
+    //pasteSliceToMask3D(currentStateForCursor,currentPlaneIndex,direction,currentIdSlice);
+    for(int i = 0;i<cursorPixels->size();i++)
+        m_itkMask->SetPixel(cursorPixels->at(i).first,cursorPixels->at(i).second);
 
     m_itkMask->Modified();
     m_itkMask->GetPixelContainer()->Modified();
@@ -1779,7 +1797,7 @@ void AlgorithmPaintToolbox::onAddBrushSize()
         return;
     if (cursorOn && !cursorJustReactivated) 
     {
-        backToCurrentState();
+        removeCursorDisplay();
         updateStroke(m_viewFilter,currentView);
     }
 }
@@ -1791,7 +1809,7 @@ void AlgorithmPaintToolbox::onReduceBrushSize()
         return;
     if (cursorOn && !cursorJustReactivated)
     {
-        backToCurrentState();
+        removeCursorDisplay();
         updateStroke(m_viewFilter,currentView);
     }
 }
