@@ -110,10 +110,10 @@ public slots:
     void onUndo();
     void onRedo();
     void addSliceToStack(medAbstractView * view,const unsigned char planeIndex,QList<int> listIdSlice);
-    void saveCurrentStateForCursor(medAbstractView * view,const unsigned char planeIndex,unsigned int idSlice);
+    //void saveCurrentStateForCursor(medAbstractView * view,const unsigned char planeIndex,unsigned int idSlice);
     void onViewClosed();
 
-    void onAcceptGrowth();
+    void onNewSeed();
     void onRemoveSeed();
 
     void copySliceMask();
@@ -147,7 +147,7 @@ protected:
     void copySliceFromMask3D(itk::Image<unsigned char,2>::Pointer copy,const char planeIndex,const char * direction,const unsigned int slice);
     void pasteSliceToMask3D(itk::Image<unsigned char,2>::Pointer image2D,const char planeIndex,const char * direction,const unsigned int slice);
 
-    void backToCurrentState();
+    void removeCursorDisplay();
 
 private:
     typedef dtkSmartPointer<medSeedPointAnnotationData> SeedPoint;
@@ -155,9 +155,9 @@ private:
     QPushButton *m_strokeButton;
     QPushButton *m_labelColorWidget;
     QSpinBox *m_strokeLabelSpinBox;
-    QPushButton * m_acceptGrowthButton;
+    QPushButton * m_newSeedButton;
     QPushButton * m_removeSeedButton;
-    QShortcut *undo_shortcut, *redo_shortcut, *copy_shortcut, *paste_shortcut, *acceptGrowth_shortcut, *removeSeed_shortcut, *addBrushSize_shortcut, *reduceBrushSize_shortcut;
+    QShortcut *undo_shortcut, *redo_shortcut, *copy_shortcut, *paste_shortcut, *newSeed_shortcut, *removeSeed_shortcut, *addBrushSize_shortcut, *reduceBrushSize_shortcut;
     
     QLabel *m_colorLabel;
     QLabel * m_wandInfo;
@@ -171,6 +171,7 @@ private:
     QSlider *m_wandUpperThresholdSlider, *m_wandLowerThresholdSlider;
     QDoubleSpinBox *m_wandUpperThresholdSpinBox , * m_wandLowerThresholdSpinBox;
     QCheckBox *m_wand3DCheckbox;
+    QTime wandTimer;
 
     bool seedPlanted;
     QVector3D m_seed;
@@ -212,7 +213,7 @@ private:
 
     PaintState::E m_paintState;
     bool cursorOn;
-    MaskSliceType::Pointer currentStateForCursor;
+    QList<QPair<MaskType::IndexType,unsigned char>> * cursorPixels;
     unsigned int currentPlaneIndex; //plane Index of the current/last operation
     unsigned int currentIdSlice; // current slice;
     bool undoRedoCopyPasteModeOn;
