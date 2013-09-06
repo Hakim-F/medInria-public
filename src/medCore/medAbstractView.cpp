@@ -113,6 +113,7 @@ medAbstractView::medAbstractView(medAbstractView *parent) : dtkAbstractView(pare
     // Type of cursor
     this->addProperty("Cursor",QStringList() << "Normal" << "None");
 
+    this->addProperty("vtkWidget",QStringList() << "None" << "ContourWidget" ); 
     // do not set properties, leave it to subclass
 }
 
