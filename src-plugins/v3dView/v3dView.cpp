@@ -67,7 +67,11 @@
 #include <vtkOrientedGlyphContourRepresentation.h>
 #include <vtkProperty.h>
 #include <vtkPolyData.h>
-
+#include <vtkImageActorPointPlacer.h>
+#include <vtkBoundedPlanePointPlacer.h>
+#include <vtkPlane.h>
+#include <vtkWidgetEventTranslator.h>
+#include <vtkEvent.h>
 //=============================================================================
 // Construct a QVector3d from pointer-to-double
 inline QVector3D doubleToQtVector3D ( const double * v )
@@ -1520,70 +1524,52 @@ void v3dView::onVtkWidgetPropertySet(const QString &value)
     if (value =="ContourWidget")
     {
         vtkSmartPointer<vtkOrientedGlyphContourRepresentation> contourRep = vtkSmartPointer<vtkOrientedGlyphContourRepresentation>::New();
-        contourRep->GetLinesProperty()->SetColor(1, 0, 0); //set color to red
+        contourRep->GetLinesProperty()->SetColor(1, 0, 1); //set color to purple
       
         vtkSmartPointer<vtkContourWidget> contourWidget = vtkSmartPointer<vtkContourWidget>::New();
         vtkSmartPointer<vtkRenderWindowInteractor> interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
         interactor->SetRenderWindow(d->view2d->GetRenderWindow());
-         contourWidget->SetInteractor(interactor);
+        contourWidget->SetInteractor(/*d->view2d->GetInteractor()*/interactor);
         contourWidget->SetRepresentation(contourRep);
         contourWidget->On();
- 
-      /*for (int i = 0; i < argc; i++)
+        //contourWidget->FollowCursorOn();
+        vtkSmartPointer<vtkBoundedPlanePointPlacer> placer = vtkSmartPointer<vtkBoundedPlanePointPlacer>::New();
+        
+        placer->RemoveAllBoundingPlanes();
+        if (this->property("Orientation")=="Axial")
         {
-        if (strcmp("-Shift", argv[i]) == 0)
-          {
-          contourWidget->GetEventTranslator()->RemoveTranslation( 
-                                            vtkCommand::LeftButtonPressEvent );
-          contourWidget->GetEventTranslator()->SetTranslation( 
-                                            vtkCommand::LeftButtonPressEvent,
-                                            vtkWidgetEvent::Translate );
-          }
-        else if (strcmp("-Scale", argv[i]) == 0)
-          {
-          contourWidget->GetEventTranslator()->RemoveTranslation( 
-                                            vtkCommand::LeftButtonPressEvent );
-          contourWidget->GetEventTranslator()->SetTranslation( 
-                                            vtkCommand::LeftButtonPressEvent,
-                                            vtkWidgetEvent::Scale );
-          }
+            placer->SetProjectionNormalToZAxis();
+            placer->SetProjectionPosition(d->view2d->GetImageActor()->GetCenter()[2]);
         }
- */
- 
-      vtkSmartPointer<vtkPolyData> pd = vtkSmartPointer<vtkPolyData>::New();
- 
-      vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-      vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-      vtkIdType* lineIndices = new vtkIdType[21];
-      for (int i = 0; i< 20; i++)
+        if (this->property("Orientation")=="Coronal")
         {
-        const double angle = 2.0*vtkMath::Pi()*i/20.0;
-        points->InsertPoint(static_cast<vtkIdType>(i), 0.1*cos(angle),
-                            0.1*sin(angle), 0.0 );
-        lineIndices[i] = static_cast<vtkIdType>(i);
+            placer->SetProjectionNormalToYAxis();
+            placer->SetProjectionPosition(d->view2d->GetImageActor()->GetCenter()[1]);
         }
- 
-      lineIndices[20] = 0;
-      lines->InsertNextCell(21,lineIndices);
-      delete [] lineIndices;
-      pd->SetPoints(points);
-      pd->SetLines(lines);
- 
-      contourWidget->Initialize(pd);
+        if (this->property("Orientation")=="Sagittal")
+        {
+            placer->SetProjectionNormalToXAxis();
+            placer->SetProjectionPosition(d->view2d->GetImageActor()->GetCenter()[0]);
+        }
+
+        contourWidget->GetEventTranslator()->SetTranslation(vtkCommand::RightButtonPressEvent,NULL);
+        contourRep->SetPointPlacer(placer);
+
+        //contourWidget->EnabledOn();
+        //contourWidget->ProcessEventsOn();
+  
       contourWidget->Render();
-      d->view2d->GetRenderer()->ResetCamera();
-      d->view2d->GetRenderWindow()->Render();
-
-      d->view2d->GetInteractor()->Initialize();
-      d->view2d->GetInteractor()->Start();
-
-      //contourWidget->Off(); 
+      d->view2d->SetRenderWindow(d->renWin);
+      interactor->Initialize();
+      interactor->Start();
+      //contourWidget->Off();
     }
 
     if (value =="None")
     {
-        
+        //d->view2d
     }
+    
 }
 
 
