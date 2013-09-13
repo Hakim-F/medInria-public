@@ -64,6 +64,7 @@ public:
     static QString s_name(const QObject * trObj =  NULL);
 
     void setCurrentView(medAbstractView * view);
+    void update(dtkAbstractView * view);
        
 
 public slots:

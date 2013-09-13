@@ -1828,4 +1828,4 @@ void AlgorithmPaintToolbox::setCursorOn(bool value)
         currentView->setProperty("Cursor","Normal");*/
 }
 
-f} // namespace mseg
+} // namespace mseg

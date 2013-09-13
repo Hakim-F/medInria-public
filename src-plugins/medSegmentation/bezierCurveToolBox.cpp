@@ -22,6 +22,8 @@
 #include <medMetaDataKeys.h>
 #include <medMessageController.h>
 #include <medSegmentationSelectorToolBox.h>
+#include <medSegmentationAbstractToolBox.h>
+#include <medToolBox.h>
 #include <medViewManager.h>
 
 #include <dtkCore/dtkAbstractDataFactory.h>
@@ -296,6 +298,38 @@ QString bezierCurveToolBox::s_name(const QObject * trObj)
 //    if (viewClosed==currentView)
 //        currentView = NULL;
 //}
+
+
+void bezierCurveToolBox::update(dtkAbstractView *view)
+{
+    medToolBox::update(view);
+    if(!view)
+    {
+        clear();
+        return;
+    }
+
+    medAbstractView * medView = dynamic_cast<medAbstractView *> (view);
+    
+    if ( !medView )
+        return;
+
+   /* if ((currentView) && (currentView != medView) )
+    {
+        currentView->disconnect(this,0);
+        clear();
+    }*/
+
+    currentView = medView;
+
+    //QObject::connect(d->currentView, SIGNAL(dataAdded(dtkAbstractData*, int)),
+    //                 this, SLOT(addData(dtkAbstractData*, int)),
+    //                 Qt::UniqueConnection);
+
+    //QObject::connect(d->currentView, SIGNAL(dataRemoved(dtkAbstractData*,int)),
+    //                 this, SLOT(removeData(dtkAbstractData*, int)),
+    //                 Qt::UniqueConnection);
+}
 
 //void bezierCurveToolBox::setCurrentView(medAbstractView * view)
 //{
