@@ -639,7 +639,7 @@ void vtkImageView3D::InternalUpdate()
       appender->AddInput(it->ImageDisplay->GetInput());
     }
 
-    appender->Update();
+    //appender->Update();
 
     input = appender->GetOutput();
 
@@ -689,7 +689,7 @@ void vtkImageView3D::InternalUpdate()
     if (lut)
     {
       this->PlanarWindowLevel->SetLookupTable(lut);
-      this->PlanarWindowLevel->Update();
+      //this->PlanarWindowLevel->Update();
       this->ActorX->SetInput ( this->PlanarWindowLevel->GetOutput() );
       this->ActorY->SetInput ( this->PlanarWindowLevel->GetOutput() );
       this->ActorZ->SetInput ( this->PlanarWindowLevel->GetOutput() );

@@ -121,8 +121,6 @@ public slots:
 
     void onAddBrushSize();
     void onReduceBrushSize();
-    void activateBezierCurve(bool);
-    void onAddNewCurve();
 
 protected:
     friend class ClickAndMoveEventFilter;
@@ -220,9 +218,6 @@ private:
     unsigned int currentIdSlice; // current slice;
     bool undoRedoCopyPasteModeOn;
     bool cursorJustReactivated;
-
-    QPushButton * bezierCurve,* addNewCurve;
-    bool newCurve;
 };
 
 } // namespace mseg

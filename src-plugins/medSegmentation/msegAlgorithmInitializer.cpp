@@ -17,6 +17,7 @@
 #include "msegAlgorithmConnectedThresholdToolbox.h"
 #include "medProcessPaintSegm.h"
 #include "msegAlgorithmPaintToolbox.h"
+#include <bezierCurveToolBox.h>
 #include <medToolBoxFactory.h>
 
 #include <dtkCore/dtkAbstractProcessFactory.h>
@@ -70,6 +71,12 @@ bool AlgorithmInitializer::initializeWidgets()
         AlgorithmPaintToolbox::s_identifier(),
         AlgorithmPaintToolbox::s_name(),
         AlgorithmPaintToolbox::s_description(),
+        QStringList()<<"segmentation");
+
+    ret &= factory->registerToolBox<bezierCurveToolBox>(
+        bezierCurveToolBox::s_identifier(),
+        bezierCurveToolBox::s_name(),
+        bezierCurveToolBox::s_description(),
         QStringList()<<"segmentation");
 
     return ret;

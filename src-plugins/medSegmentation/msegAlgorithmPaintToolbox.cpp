@@ -45,16 +45,6 @@
 #include <algorithm>
 #include <set>
 
-//#include <QVTKWidget.h>
-//#include <vtkOrientedGlyphContourRepresentation.h>
-//#include <vtkContourWidget.h>
-//#include <vtkRenderWindowInteractor.h>
-//#include <vtkBoundedPlanePointPlacer.h>
-//#include <vtkRendererCollection.h>
-//#include <vtkSmartPointer.h>
-//#include <vtkProperty.h>
-//#include <vtkRenderWindow.h>
-
 namespace mseg 
 {
 
@@ -68,20 +58,6 @@ public:
     {
         if(view->property("Orientation")=="3D")
             return false;
-        
-        // SMALL HACK FOR BEZIER CURVE GET RID OF IT WHEN THE BEZIERCURVE PLUGIN WILL BE CREATED
-        /*qDebug() << m_cb->newCurve;
-        if (m_cb->newCurve)
-        {
-            m_cb->setCurrentView(view);
-            view->setProperty("vtkWidget","ContourWidget");
-            m_cb->newCurve = false;
-            return false;
-        }
-        else
-            if (m_cb->bezierCurve->isChecked())
-                return false;*/
-        //----------------------------------------------------------------------------------------///
         
         m_paintState = m_cb->paintState();
 
@@ -320,22 +296,9 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
     m_magicWandButton->setToolTip(tr("Magic wand to automatically paint similar voxels."));
     m_magicWandButton->setCheckable(true);
 
-    /* TO ADD IN A NEW PLUGIN BEZIER CURVE PLUGIN OR WHATEVER */
-    bezierCurve = new QPushButton(tr("Bezier Curve (Prototype)"),displayWidget);
-    bezierCurve->setToolTip(tr("activate the bezier curve widget (This is an alpha version (not stable at all, you may need to reboot the software))"));
-    bezierCurve->setCheckable(true);
-    addNewCurve = new QPushButton(tr("Add new Curve"),displayWidget);
-    addNewCurve->setToolTip(tr("Start a new curve"));
-    addNewCurve->hide();
-    connect(addNewCurve,SIGNAL(clicked()),this,SLOT(onAddNewCurve()));
-    connect(bezierCurve,SIGNAL(toggled(bool)),this,SLOT(activateBezierCurve(bool)));
-    newCurve = false;
-    /*--------------------------------(-_-)*---------------HEAD SHOT--------------*/
-
     QHBoxLayout * ButtonLayout = new QHBoxLayout();
     ButtonLayout->addWidget( m_strokeButton );
     ButtonLayout->addWidget( m_magicWandButton );
-    ButtonLayout->addWidget(bezierCurve);
     layout->addLayout( ButtonLayout );
 
     QHBoxLayout * brushSizeLayout = new QHBoxLayout();
@@ -470,7 +433,6 @@ AlgorithmPaintToolbox::AlgorithmPaintToolbox(QWidget *parent ) :
     QHBoxLayout * dataButtonsLayout = new QHBoxLayout();
     dataButtonsLayout->addWidget(m_applyButton);
     dataButtonsLayout->addWidget(m_clearMaskButton);
-    layout->addWidget(addNewCurve);
     layout->addLayout(dataButtonsLayout);
 
     connect (m_strokeButton,     SIGNAL(toggled(bool)),
@@ -590,7 +552,6 @@ void AlgorithmPaintToolbox::onStrokeToggled(bool checked)
     else
     {
         m_magicWandButton->setChecked(false);
-        bezierCurve->setChecked(false);
         setPaintState(PaintState::Stroke);
         updateButtons();
         m_viewFilter = ( new ClickAndMoveEventFilter(this->segmentationToolBox(), this) );
@@ -613,7 +574,6 @@ void AlgorithmPaintToolbox::onMagicWandToggled(bool checked)
     {
         setCursorOn(false);
         m_strokeButton->setChecked(false);
-        bezierCurve->setChecked(false);
         setPaintState(PaintState::Wand);
         updateButtons();
         m_viewFilter = ( new ClickAndMoveEventFilter(this->segmentationToolBox(), this) );
@@ -1868,36 +1828,4 @@ void AlgorithmPaintToolbox::setCursorOn(bool value)
         currentView->setProperty("Cursor","Normal");*/
 }
 
-void AlgorithmPaintToolbox::activateBezierCurve(bool checked)
-{
-    if (checked)
-    {
-            setCursorOn(false);
-            m_magicWandButton->setChecked(false);
-            m_strokeButton->setChecked(false);
-            addNewCurve->show();
-            /*m_viewFilter = ( new ClickAndMoveEventFilter(this->segmentationToolBox(), this) );
-            this->segmentationToolBox()->addViewEventFilter( m_viewFilter );*/
-    }
-    else
-    {
-        addNewCurve->hide();
-        newCurve = false;
-    }
-
-    /*if (currentView)
-        if (checked)
-            currentView->setProperty("vtkWidget","ContourWidget");
-        else
-            currentView->setProperty("vtkWidget","None");*/
-}
-
-void AlgorithmPaintToolbox::onAddNewCurve()
-{
-    newCurve = true;
-    
-    if (currentView)
-        currentView->setProperty("vtkWidget","ContourWidget");
-}
-
-} // namespace mseg
+f} // namespace mseg
