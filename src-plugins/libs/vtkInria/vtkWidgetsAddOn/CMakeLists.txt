@@ -22,6 +22,7 @@ vtkRulerWidget.cxx
 vtkInteractorStyleTrackballCamera2.cxx
 #vtkBrushWidget.cxx
 #vtkBrushRepresentation.cxx
+vtkContourOverlayRepresentation.cxx
 )
 
 set(${PROJECT_NAME}_LIBS

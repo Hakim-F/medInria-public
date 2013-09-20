@@ -90,6 +90,7 @@ target_link_libraries(${PROJECT_NAME}
   ${ITK_LIBRARIES}
   ${VTK_LIBRARIES}
   vtkImageView
+  vtkWidgetsAddOn
   )
 
 dtk_build_doc(msegPlugin)
