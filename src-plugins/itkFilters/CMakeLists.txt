@@ -64,7 +64,7 @@ set(${PROJECT_NAME}_HEADERS
 set(${PROJECT_NAME}_HEADERS_MOC
   itkFiltersPlugin.h
   itkFiltersToolBox.h
-  itkMorphologicalFiltersToolBox.h
+  itkMorphologicalFiltersToolbox.h
   itkFiltersProcessBase.h
   itkFiltersAddProcess.h
   itkFiltersSubtractProcess.h
@@ -85,7 +85,7 @@ set(${PROJECT_NAME}_HEADERS_MOC
 set(${PROJECT_NAME}_SOURCES
   itkFiltersPlugin.cpp
   itkFiltersToolBox.cpp
-  itkMorphologicalFiltersToolBox.cpp
+  itkMorphologicalFiltersToolbox.cpp
   itkFiltersProcessBase.cpp
   itkFiltersAddProcess.cpp
   itkFiltersSubtractProcess.cpp

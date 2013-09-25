@@ -28,7 +28,7 @@
 #include "itkFiltersCloseProcess.h"
 #include "itkFiltersOpenProcess.h"
 #include "itkFiltersToolBox.h"
-#include "itkMorphologicalFiltersToolBox.h"
+#include "itkMorphologicalFiltersToolbox.h"
 #include "itkFiltersDefinitions.h"
 
 #include <dtkLog/dtkLog.h>

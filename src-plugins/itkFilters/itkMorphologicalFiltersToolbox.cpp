@@ -11,7 +11,7 @@
 
 =========================================================================*/
 
-#include "itkMorphologicalFiltersToolBox.h"
+#include "itkMorphologicalFiltersToolbox.h"
 
 #include <limits>
 
