@@ -50,6 +50,11 @@
 #include <vtkImageView2D.h>
 #include <vtkImageActor.h>
 
+<<<<<<< HEAD
+#include <vtkSphereSource.h>
+
+=======
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
 //
 #include <vtkThinPlateSplineTransform.h>
 #include <vtkMetaImageWriter.h>
@@ -59,9 +64,22 @@
 #include <vtkImageData.h>
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
+<<<<<<< HEAD
+#include <vtkMatrix4x4.h>
+#include <vtkImageActorPointPlacer.h>
+#include <vtkFocalPlanePointPlacer.h>
 
 #include <vtkBalloonRepresentation.h>
 #include <vtkBalloonWidget.h>
+#include <vtkPropCollection.h>
+#include <vtkDistanceWidget.h>
+#include <vtkDistanceRepresentation2D.h>
+#include <vtkAxisActor2D.h>
+=======
+
+#include <vtkBalloonRepresentation.h>
+#include <vtkBalloonWidget.h>
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
 #include <vtkOrientedGlyphFocalPlaneContourRepresentation.h>
 #include <vtkContourOverlayRepresentation.h>
 #include <vtkContourRepresentation.h>
@@ -69,17 +87,13 @@
 
 #include <vtkWidgetEvent.h>
 #include <vtkDecimatePolylineFilter.h>
+<<<<<<< HEAD
+=======
 #include <vtkParametricSpline.h>
 #include <vtkCellArray.h>
 #include <vtkPolyLine.h>
 #include <vtkPointData.h>
-
-#include <vtkPolygon.h>
-#include <msegAlgorithmPaintToolbox.h>
-#include <medDataManager.h>
-
-#include <vtkMath.h>
-#include <vtkLine.h>
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
 
 class bezierObserver : public vtkCommand
 {
@@ -192,7 +206,11 @@ medSegmentationAbstractToolBox( parent)
     connect(penMode_CheckBox,SIGNAL(stateChanged(int)),this,SLOT(onPenMode()));
 
     generateBinaryImage_button = new QPushButton(tr("Generate Binary Image"),displayWidget);
+<<<<<<< HEAD
+    generateBinaryImage_button->hide();
+=======
     
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
     connect(generateBinaryImage_button,SIGNAL(clicked()),this,SLOT(generateBinaryImage()));
 
     currentView = NULL;
@@ -206,8 +224,8 @@ medSegmentationAbstractToolBox( parent)
     layout->addWidget(penMode_CheckBox);
 
     listOfCurvesForSagittal = new QList<QPair<vtkSmartPointer<vtkContourWidget>,unsigned int> >();
-    listOfCurvesForAxial = new QList<QPair<vtkSmartPointer<vtkContourWidget>,unsigned int> >();
-    listOfCurvesForCoronal = new QList<QPair<vtkSmartPointer<vtkContourWidget>,unsigned int> >();
+    listOfCurvesForAxial = new QList<QPair<vtkSmartPointer<vtkContourWidget>,unsigned int> >(); 
+    listOfCurvesForCoronal = new QList<QPair<vtkSmartPointer<vtkContourWidget>,unsigned int> >(); 
 
     observer = bezierObserver::New();
     observer->setToolBox(this);
@@ -221,11 +239,15 @@ medSegmentationAbstractToolBox( parent)
     connect(copy_shortcut,SIGNAL(activated()),this,SLOT(copyContours()));
     connect(paste_shortcut,SIGNAL(activated()),this,SLOT(pasteContours()));
 
-    ListOfContours = new QList<vtkSmartPointer<vtkPolyData> >();
+    ListOfContours = new QList<vtkSmartPointer<vtkPolyData>>();
 
     propagate = new QPushButton("Propagate",this);
     interpolate = new QPushButton("Interpolate",this);
+<<<<<<< HEAD
+    interpolate->hide();
+=======
     
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
     propagateLabel = new QLabel("Curve propagation : Define the interval");
     bound1 = new QSpinBox(this);
     bound2 = new QSpinBox(this);
@@ -236,9 +258,14 @@ medSegmentationAbstractToolBox( parent)
     layout->addWidget(bound1);
     layout->addWidget(bound2);
     layout->addWidget(propagate);
+<<<<<<< HEAD
+
+    connect(propagate,SIGNAL(clicked()),this,SLOT(propagateCurve()));
+=======
     layout->addWidget(interpolate);
     connect(propagate,SIGNAL(clicked()),this,SLOT(propagateCurve()));
     connect(interpolate,SIGNAL(clicked()),this,SLOT(interpolateCurve()));
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
 }
 
 bezierCurveToolBox::~bezierCurveToolBox(){}
@@ -519,7 +546,10 @@ void bezierCurveToolBox::onAddNewCurve()
     vtkSmartPointer<vtkContourOverlayRepresentation> contourRep = vtkSmartPointer<vtkContourOverlayRepresentation>::New();
     contourRep->GetLinesProperty()->SetColor(0, 0, 1); 
     contourRep->GetLinesProperty()->SetLineWidth(3);
+<<<<<<< HEAD
+=======
     contourRep->GetProperty()->SetPointSize(4);
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
 
     currentContour = vtkSmartPointer<vtkContourWidget>::New();
     currentContour->SetRepresentation(contourRep);
@@ -551,59 +581,106 @@ void bezierCurveToolBox::onAddNewCurve()
     balloonRep->VisibilityOn();
 }
 
-//
-//void bezierCurveToolBox::generateBinaryImage(vtkPolyData * pd)
-//{
-//    vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
-//
-//    vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();    
-//    whiteImage->SetSpacing(view2d->GetImageInput(0)->GetSpacing());
-//    whiteImage->SetDimensions(view2d->GetImageInput(0)->GetDimensions());
-//    whiteImage->SetExtent(view2d->GetImageInput(0)->GetExtent());
-//    whiteImage->SetOrigin(view2d->GetImageInput(0)->GetOrigin());
-//    
-//    whiteImage->SetScalarTypeToUnsignedChar();
-//    whiteImage->AllocateScalars();
-//
-//    // fill the image with foreground voxels:
-//    unsigned char inval = 255;
-//    unsigned char outval = 0;
-//    vtkIdType count = whiteImage->GetNumberOfPoints();
-//    for (vtkIdType i = 0; i < count; ++i)
-//    {
-//        whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
-//    }
-//
-//    // polygonal data --> image stencil:
-//    vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-//
-//    pol2stenc->SetInput(pd);
-//
-//    pol2stenc->SetOutputOrigin(whiteImage->GetOrigin());
-//    pol2stenc->SetOutputSpacing(whiteImage->GetSpacing());
-//    pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
-//    
-//    pol2stenc->Update();
-//
-//    // cut the corresponding white image and set the background:
-//    vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
-//
-//    imgstenc->SetInput(whiteImage);
-//    imgstenc->SetStencil(pol2stenc->GetOutput());
-//    
-//    imgstenc->ReverseStencilOff();
-//    imgstenc->SetBackgroundValue(outval);
-//    imgstenc->Update();
-//
-//    vtkSmartPointer<vtkMetaImageWriter> writer = 
-//        vtkSmartPointer<vtkMetaImageWriter>::New();
-//    writer->SetFileName("GenerateBinaryImage.mhd");
-//
-//    writer->SetInput(imgstenc->GetOutput());
-//
-//    writer->Write();  
-//    
-//}
+
+<<<<<<< HEAD
+void bezierCurveToolBox::generateBinaryImage()
+{
+    /*   if (listOfCurves->isEmpty())
+    return;*/
+    // Generate binary image
+    //vtkSmartPointer<vtkPolyData> polyData = dynamic_cast<vtkOrientedGlyphContourRepresentation * >(listOfCurves->at(0)->GetRepresentation())->GetContourRepresentationAsPolyData();
+
+    //vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
+    //double bounds[6];
+    //polyData->GetBounds(bounds);
+    //double spacing[3]; // desired volume spacing
+    //whiteImage->SetScalarTypeToUnsignedChar();
+    //whiteImage->AllocateScalars();
+    //vtkSmartPointer<vtkLinearExtrusionFilter> extruder =
+    //vtkSmartPointer<vtkLinearExtrusionFilter>::New();
+    //extruder->SetInput(polyData);
+    //extruder->SetScaleFactor(1.);
+    //extruder->SetExtrusionTypeToNormalExtrusion();
+    //extruder->SetVector(0, 0, 1);
+    //extruder->Update();
+    //// polygonal data --> image stencil:l
+    //vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc =
+    //vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+    //pol2stenc->SetTolerance(0); // important if extruder->SetVector(0, 0, 1) !!!
+    //pol2stenc->SetInputConnection(extruder->GetOutputPort());
+    //pol2stenc->SetOutputOrigin( static_cast<vtkImageView2D *>(currentView->getView2D())->GetImageActor()->GetCenter());
+    ////pol2stenc->SetOutputSpacing(spacing);
+    //pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
+    //pol2stenc->Update();
+
+    //// cut the corresponding white image and set the background:
+    //vtkSmartPointer<vtkImageStencil> imgstenc =
+    //vtkSmartPointer<vtkImageStencil>::New(); 
+    //  
+    //imgstenc->SetInput(whiteImage);
+    //imgstenc->SetStencil(pol2stenc->GetOutput());
+    //imgstenc->ReverseStencilOff();
+    //imgstenc->SetBackgroundValue(0);
+    //imgstenc->Update();
+    //vtkSmartPointer<vtkMetaImageWriter> imageWriter =
+    //vtkSmartPointer<vtkMetaImageWriter>::New();
+    //imageWriter->SetFileName("labelImage.mhd");
+    //imageWriter->SetInputConnection(imgstenc->GetOutputPort());
+    //imageWriter->Write();
+=======
+void bezierCurveToolBox::generateBinaryImage(vtkPolyData * pd)
+{
+    vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
+
+    vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();    
+    whiteImage->SetSpacing(view2d->GetImageInput(0)->GetSpacing());
+    whiteImage->SetDimensions(view2d->GetImageInput(0)->GetDimensions());
+    whiteImage->SetExtent(view2d->GetImageInput(0)->GetExtent());
+    whiteImage->SetOrigin(view2d->GetImageInput(0)->GetOrigin());
+    
+    whiteImage->SetScalarTypeToUnsignedChar();
+    whiteImage->AllocateScalars();
+
+    // fill the image with foreground voxels:
+    unsigned char inval = 255;
+    unsigned char outval = 0;
+    vtkIdType count = whiteImage->GetNumberOfPoints();
+    for (vtkIdType i = 0; i < count; ++i)
+    {
+        whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
+    }
+
+    // polygonal data --> image stencil:
+    vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+
+    pol2stenc->SetInput(pd);
+
+    pol2stenc->SetOutputOrigin(whiteImage->GetOrigin());
+    pol2stenc->SetOutputSpacing(whiteImage->GetSpacing());
+    pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
+    
+    pol2stenc->Update();
+
+    // cut the corresponding white image and set the background:
+    vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
+
+    imgstenc->SetInput(whiteImage);
+    imgstenc->SetStencil(pol2stenc->GetOutput());
+    
+    imgstenc->ReverseStencilOff();
+    imgstenc->SetBackgroundValue(outval);
+    imgstenc->Update();
+
+    vtkSmartPointer<vtkMetaImageWriter> writer = 
+        vtkSmartPointer<vtkMetaImageWriter>::New();
+    writer->SetFileName("GenerateBinaryImage.mhd");
+
+    writer->SetInput(imgstenc->GetOutput());
+
+    writer->Write();  
+    
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
+}
 
 
 void bezierCurveToolBox::onPenMode()
@@ -755,7 +832,10 @@ void bezierCurveToolBox::pasteContours(int slice1,int slice2)
             vtkSmartPointer<vtkContourOverlayRepresentation> contourRep = vtkSmartPointer<vtkContourOverlayRepresentation>::New();
             contourRep->GetLinesProperty()->SetColor(0, 0, 1); 
             contourRep->GetLinesProperty()->SetLineWidth(3);
+<<<<<<< HEAD
+=======
             contourRep->GetProperty()->SetPointSize(4);
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
         
             contour->SetRepresentation(contourRep);
         
@@ -767,12 +847,23 @@ void bezierCurveToolBox::pasteContours(int slice1,int slice2)
             vtkSmartPointer<vtkDecimatePolylineFilter> filter = vtkSmartPointer<vtkDecimatePolylineFilter>::New();
             filter->SetInput(ListOfContours->at(i));
             contour->GetEventTranslator()->SetTranslation(vtkCommand::RightButtonPressEvent,NULL);
+<<<<<<< HEAD
+            //contour->Initialize(ListOfContours->at(i));
+            //qDebug() << "test " << contourRep->GetNumberOfNodes();
+            //double number = 10;
+            //qDebug() << "reduction ratio " << (100-(number*(double)(100)/(double)(contourRep->GetNumberOfNodes())))/100;
+            //filter->SetTargetReduction((100-(number*(double)(100)/(double)(contourRep->GetNumberOfNodes())))/100);
+            filter->Update();
+            contour->Initialize(filter->GetOutput());
+            contourRep->SetClosedLoop(1); // not sure whether it is needed or not
+=======
 
             qDebug() << "Number of lines in the copied polyData : " << ListOfContours->at(i)->GetNumberOfLines();
             
             filter->Update();
             contour->Initialize(filter->GetOutput());
             contourRep->SetClosedLoop(1); 
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
             if (currentSlice==j)
                 contour->On();
 
@@ -794,6 +885,20 @@ void bezierCurveToolBox::propagateCurve()
 }
 
 
+<<<<<<< HEAD
+//void bezierCurveToolBox::interpolate()
+//{
+//    listOfPair_CurveSlice * list = getListOfCurrentOrientation();
+//
+//}
+
+//INTERPOLATION ALGORITHM ROI MORPHINGBETWEEN OSIRIX
+
+//2 bezier ROI -> Prendre celle avec le plus de point de controle.
+  //  N = maxPoint +1/3maxpoint => N est le nombre de point de controle des nouvelles ROI
+// Reordonner le tableau des points de facon a ce que le point superieur gauche soit le premier
+// faire une deplacement a ratio a travers les slices.
+=======
 
 void bezierCurveToolBox::interpolateCurve()
 {
@@ -802,8 +907,6 @@ void bezierCurveToolBox::interpolateCurve()
 
     vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
     listOfPair_CurveSlice * list = getListOfCurrentOrientation();
-    QList<QPair<vtkPolyData *,unsigned int> > listTest = QList<QPair<vtkPolyData *,unsigned int> >();
-
     int maxSlice = 0;
     int minSlice = 999999;
     
@@ -874,11 +977,9 @@ void bezierCurveToolBox::interpolateCurve()
         if (currentSlice==i)
             contour->On();
         list->append(QPair<vtkSmartPointer<vtkContourWidget>,unsigned int>(contour,i));
-        listTest.append(QPair<vtkPolyData*,unsigned int>(contourRep->GetContourRepresentationAsPolyData(),i));
     }
     currentView->update();
-    QList<QPair<vtkPolygon*,unsigned int> > listTest2 = createImagePolygons(listTest);
-    generateBinaryImage(listTest2);
+    getCoordinatesOfROIPolygon(listPolyData.at(0));
 }
 
 QList<vtkPolyData* > bezierCurveToolBox::generateIntermediateCurves(vtkSmartPointer<vtkPolyData> curve1,vtkSmartPointer<vtkPolyData> curve2,int nb)
@@ -911,7 +1012,6 @@ QList<vtkPolyData* > bezierCurveToolBox::generateIntermediateCurves(vtkSmartPoin
         vtkPolyData * poly = vtkPolyData::New();
         vtkCellArray * cells = vtkCellArray::New();
         vtkPolyLine * polyLine = vtkPolyLine::New();
-        
         polyLine->GetPointIds()->SetNumberOfIds(startCurve->GetNumberOfPoints());
         
         bufferPoints->Reset();
@@ -1024,535 +1124,18 @@ void bezierCurveToolBox::resampleCurve(vtkPolyData * poly,int nbPoints)
     poly->SetPoints(points);
 }
 
-QList<QPair<vtkPolygon*,unsigned int> > bezierCurveToolBox::createImagePolygons(QList<QPair<vtkPolyData*,unsigned int> > &listPoly)
+QList<unsigned int*> bezierCurveToolBox::getCoordinatesOfROIPolygon(vtkPolyData * poly)
 {
-    vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
-    
-    //vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
-    /*vtkCellArray * polygons = vtkCellArray::New();*/
-    
-    QList<QPair<vtkPolygon*,unsigned int> > listPolygon = QList<QPair<vtkPolygon*,unsigned int> >();
-
-    /*int nb = 0;*/
-    int ind=0;
-    /*for(int i=0;i<listPoly.size();i++)
-        nb+=listPoly.at(i).first->GetNumberOfPoints();
-    points->SetNumberOfPoints(nb); */
-    
-    for(int i=0;i<listPoly.size();i++)
+    for(int i = 0;i<poly->GetNumberOfPoints();i++)
     {
-        vtkPolygon *polygon = vtkPolygon::New();
-        vtkPoints * points = vtkPoints::New();
-        
-        const int nb = listPoly.at(i).first->GetNumberOfPoints();
-        
-        points->SetNumberOfPoints(nb);
-        vtkIdType ids[1000];
-
-        //polygon->GetPointIds()->SetNumberOfIds(nb);
-            
-        for(int j=0;j<nb;j++)
-        {
-            double * point = listPoly.at(i).first->GetPoint(j);
-            int imagePoint[3];
-            double imagePointDouble[3];
-
-            view2d->GetImageCoordinatesFromWorldCoordinates(point,imagePoint);
-            //qDebug() << "number of points of polygon : " << polygon->GetNumberOfPoints();
-            //qDebug() << "number of points of points of polygon : " << polygon->GetPoints()->GetNumberOfPoints();
-            //qDebug() << "imagePoint[0] : "  << imagePoint[0];
-            //qDebug() << "imagePoint[1] : "  << imagePoint[1];
-            //qDebug() << "imagePoint[2] : "  << imagePoint[2];
-
-            imagePointDouble[0]= (double)imagePoint[0];
-            imagePointDouble[1]= (double)imagePoint[1];
-            //qDebug() << "SLICE NUMBER : "  << listPoly.at(i).second;
-            imagePointDouble[2]= (double)listPoly.at(i).second;
-            //qDebug() << "imagePointDouble[0] : "  << imagePointDouble[0];
-            //qDebug() << "imagePointDouble[1] : "  << imagePointDouble[1];
-            //qDebug() << "imagePointDouble[2] : "  << imagePointDouble[2];
-            points->InsertPoint(j,imagePointDouble);
-            ids[j]=j;
-            //polygon->GetPointIds()->SetId(j,j);
-        }
-        
-        
-        polygon->Initialize(nb,ids,points);
-        //polygon->GetPointIds()->SetNumberOfIds(nb);
-        
-
-    /*qDebug() <<" NUMBER OF CELLS " <<poly->GetNumberOfCells();
-    qDebug() <<" NUMBER OF POINTS " <<poly->GetNumberOfPoints();*/
-        listPolygon.append(QPair<vtkPolygon*,unsigned int>(polygon,listPoly.at(i).second));
-        //polygons->InsertNextCell(polygon);
-        //ind+=nb;
+        double * point = poly->GetPoint(i);
+        qDebug() << "point = " << point[0] << " " << point[1] << " " << point[2];   
     }
-    //poly->SetPolys(polygons);
-    //poly->SetPoints(points);
-    //   qDebug() << "point = " << point[0] << " " << point[1] << " " << point[2] << " imagePoint = " << imagePoint[0] << " " << imagePoint[1] << " " << imagePoint[2];   
+
    
-   
-
-    return listPolygon;
+    return QList<unsigned int*>();
 }
 
 
-void bezierCurveToolBox::generateBinaryImage(QList<QPair<vtkPolygon*,unsigned int> > polys)
-{
-    vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
-    int *dims = view2d->GetImageInput(0)->GetDimensions();
-   /*qDebug() <<" NUMBER OF CELLS " <<poly->GetNumberOfCells();
-    qDebug() <<" NUMBER OF POINTS " <<poly->GetNumberOfPoints();
 
-    for(int j=0;j<dims[0];j++)
-    {
-        for(int k=0;k<dims[1];k++)
-        {
-            for(int i=0;i<dims[2];i++)
-            {
-                vtkCellArray * polys = poly->GetPolys();
-                for(int c = 0;c<polys->GetNumberOfCells();c++)
-                {
-                    vtkPolygon * polygonTest = dynamic_cast<vtkPolygon*>(polys->getCell);
-                    double bounds[6];
-                    double pointTest[3];
-                    double n[3];
-                    polygonTest->ComputeNormal(polygonTest->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polygonTest->GetPoints()->GetData()->GetVoidPointer(0)), n);
-                    pointTest[0]=j;
-                    pointTest[0]=k;
-                    pointTest[0]=i;
-                    polygonTest->GetBounds(bounds);
-                    int val = polygonTest->PointInPolygon(pointTest,polygonTest->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polygonTest->GetPoints()->GetData()->GetVoidPointer(0)),
-                        bounds,n);
-                    if (val)
-                    {
-                        double * pixel = static_cast<double*>(view2d->GetImageInput(0)->GetScalarPointer(j,k,i));
-                        pixel[0]=0;pixel[1]=0;pixel[2]=0;
-                    }
-                }
-            }
-        }
-    }*/
-
-
-    //for(int i=0;i<poly->GetNumberOfPoints();i++)
-    //{   
-    //        vtkPoints * points = poly->GetPoints();
-    //        double pointDouble[3];
-    //        points->GetPoint(i,pointDouble);
-    //        int x,y,z;
-    //        x= (int)pointDouble[0];
-    //        y= (int)pointDouble[1];
-    //        z= (int)pointDouble[2];
-    //        
-
-
-
-            //qDebug() <<" x : " << x << " y : " << y << " z : " << z ;
-            //qDebug() <<" xdim : "<<dims[0] << " ydim : "<<dims[1] << " zdim : "<< dims[2];
-            //if ((dims[0]<=x || dims[1]<=y || dims[2]<=z || x<=0 || y<=0 || z<=0))
-              //  continue;
-            //qDebug() << "i " << i;
-            //double * pixel = static_cast<double*>(view2d->GetImageInput(0)->GetScalarPointer(350,350,100));
-    //        //pixel[0]=0;pixel[1]=0;pixel[2]=0;
-    //}
-    typedef itk::Image<unsigned char,3> MaskType;
-    dtkSmartPointer<medAbstractData> m_maskData = dtkAbstractDataFactory::instance()->createSmartPointer( medProcessPaintSegm::MaskImageTypeIdentifier() );
-    initializeMaskData(dynamic_cast<medAbstractData*>(this->segmentationToolBox()->viewData(currentView)),m_maskData);
-    MaskType::Pointer m_itkMask = dynamic_cast<MaskType*>( reinterpret_cast<itk::Object*>(m_maskData->data()) );
-    bool firstime = true;
-    for(int j=0;j<dims[0];j++)
-    {
-        for(int k=0;k<dims[1];k++)
-        {
-            for(int c=0;c<polys.size();c++)
-            {
-                    double bounds[6];
-                    double pointTest[3];
-                    double n[3];
-                    
-                    polys[c].first->ComputeNormal(polys[c].first->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polys[c].first->GetPoints()->GetData()->GetVoidPointer(0)), n);
-                    
-                    pointTest[0]=j;
-                    pointTest[1]=k;
-                    pointTest[2]=polys[c].second;
-                    polys[c].first->GetBounds(bounds);
-                    int val =PointInPolygon(pointTest,polys[c].first->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polys[c].first->GetPoints()->GetData()->GetVoidPointer(0)),
-                        bounds,n);
-                    if (firstime)
-                    {
-                        qDebug() << "n[0] : " << n[0] << " n[1] : " << n[1] << " n[2] : " << n[2];
-                        qDebug() << "bounds " << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5];
-                        qDebug() << "val : " << val;
-                        qDebug() << "polys[c].second : " << polys[c].second;
-
-                        
-                    }
-                   
-                    if (val==1)
-                    {
-                        if (j==400 && k==300)
-                        {
-                            qDebug() << "IM IN " << polys[c].second << " nb " << polys[c].first->GetPoints()->GetNumberOfPoints();
-                        }
-                        double * pixel = static_cast<double*>(view2d->GetImageInput(0)->GetScalarPointer(j,k,polys[c].second));
-                        pixel[0]=0;pixel[1]=0;pixel[2]=0;
-                        MaskType::IndexType index;
-                        index[0]=j;index[1]=k;index[2]=polys[c].second;
-                        m_itkMask->SetPixel(index,1);
-                    }
-            }
-            firstime = false;
-        }
-    }
-    this->setOutputMetadata(dynamic_cast<medAbstractData*>(this->segmentationToolBox()->viewData(currentView)), m_maskData);
-    medDataManager::instance()->importNonPersistent( m_maskData.data());
-
-    //vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();    
-    //whiteImage->SetSpacing(view2d->GetImageInput(0)->GetSpacing());
-    //whiteImage->SetDimensions(view2d->GetImageInput(0)->GetDimensions());
-    //whiteImage->SetExtent(view2d->GetImageInput(0)->GetExtent());
-    //whiteImage->SetOrigin(view2d->GetImageInput(0)->GetOrigin());
-    //
-    //whiteImage->SetScalarTypeToUnsignedChar();
-    //whiteImage->AllocateScalars();
-
-    //// fill the image with foreground voxels:
-    //unsigned char inval = 255;
-    //unsigned char outval = 0;
-    //vtkIdType count = whiteImage->GetNumberOfPoints();
-    //for (vtkIdType i = 0; i < count; ++i)
-    //{
-    //    whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
-    //}
-
-    //// polygonal data --> image stencil:
-    //vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-
-    //pol2stenc->SetInput(pd);
-
-    //pol2stenc->SetOutputOrigin(whiteImage->GetOrigin());
-    //pol2stenc->SetOutputSpacing(whiteImage->GetSpacing());
-    //pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
-    //
-    //pol2stenc->Update();
-
-    //// cut the corresponding white image and set the background:
-    //vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
-
-    //imgstenc->SetInput(whiteImage);
-    //imgstenc->SetStencil(pol2stenc->GetOutput());
-    //
-    //imgstenc->ReverseStencilOff();
-    //imgstenc->SetBackgroundValue(outval);
-    //imgstenc->Update();
-
-    //vtkSmartPointer<vtkMetaImageWriter> writer = 
-    //    vtkSmartPointer<vtkMetaImageWriter>::New();
-    //writer->SetFileName("GenerateBinaryImage.mhd");
-
-    //writer->SetInput(imgstenc->GetOutput());
-
-    //writer->Write();  
-    
-}
-
-void bezierCurveToolBox::initializeMaskData( medAbstractData * imageData, medAbstractData * maskData )
-{
-    typedef itk::Image<unsigned char,3> MaskType; 
-    MaskType::Pointer mask = MaskType::New();
-
-    Q_ASSERT(mask->GetImageDimension() == 3);
-
-    medAbstractDataImage * mImage = qobject_cast<medAbstractDataImage*>(imageData);
-    Q_ASSERT(mImage);
-    //Q_ASSERT(mask->GetImageDimension() >= mImage->Dimension());
-
-    MaskType::RegionType region;
-    region.SetSize(0, ( mImage->Dimension() > 0 ? mImage->xDimension() : 1 ) );
-    region.SetSize(1, ( mImage->Dimension() > 1 ? mImage->yDimension() : 1 ) );
-    region.SetSize(2, ( mImage->Dimension() > 2 ? mImage->zDimension() : 1 ) );
-
-    MaskType::DirectionType direction;
-    MaskType::SpacingType spacing;
-    MaskType::PointType origin;
-
-    direction.Fill(0);
-    spacing.Fill(0);
-    origin.Fill(0);
-    for (unsigned int i = 0;i < mask->GetImageDimension();++i)
-        direction(i,i) = 1;
-
-    unsigned int maxIndex = std::min<unsigned int>(mask->GetImageDimension(),mImage->Dimension());
-
-    switch (mImage->Dimension())
-    {
-        case 2:
-        {
-            itk::ImageBase <2> * imageDataOb = dynamic_cast<itk::ImageBase <2> *>( reinterpret_cast<itk::Object*>(imageData->data()) );
-
-            for (unsigned int i = 0;i < maxIndex;++i)
-            {
-                for (unsigned int j = 0;j < maxIndex;++j)
-                    direction(i,j) = imageDataOb->GetDirection()(i,j);
-
-                spacing[i] = imageDataOb->GetSpacing()[i];
-                origin[i] = imageDataOb->GetOrigin()[i];
-            }
-
-            break;
-        }
-
-        case 4:
-        {
-            itk::ImageBase <4> * imageDataOb = dynamic_cast<itk::ImageBase <4> *>( reinterpret_cast<itk::Object*>(imageData->data()) );
-
-            for (unsigned int i = 0;i < maxIndex;++i)
-            {
-                for (unsigned int j = 0;j < maxIndex;++j)
-                    direction(i,j) = imageDataOb->GetDirection()(i,j);
-
-                spacing[i] = imageDataOb->GetSpacing()[i];
-                origin[i] = imageDataOb->GetOrigin()[i];
-            }
-
-            break;
-        }
-
-        case 3:
-        default:
-        {
-            itk::ImageBase <3> * imageDataOb = dynamic_cast<itk::ImageBase <3> *>( reinterpret_cast<itk::Object*>(imageData->data()) );
-
-            for (unsigned int i = 0;i < maxIndex;++i)
-            {
-                for (unsigned int j = 0;j < maxIndex;++j)
-                    direction(i,j) = imageDataOb->GetDirection()(i,j);
-
-                spacing[i] = imageDataOb->GetSpacing()[i];
-                origin[i] = imageDataOb->GetOrigin()[i];
-            }
-
-            break;
-        }
-    }
-
-    mask->SetOrigin(origin);
-    mask->SetDirection(direction);
-    mask->SetSpacing(spacing);
-    mask->SetLargestPossibleRegion(region);
-    mask->SetBufferedRegion(region);
-    mask->Allocate();
-    mask->FillBuffer( medSegmentationSelectorToolBox::MaskPixelValues::Unset );
-
-    maskData->setData((QObject*)(mask.GetPointer()));
-}
-
-void bezierCurveToolBox::setOutputMetadata(const dtkAbstractData * inputData, dtkAbstractData * outputData)
-{
-    Q_ASSERT(outputData && inputData);
-
-    QStringList metaDataToCopy;
-    metaDataToCopy 
-        << medMetaDataKeys::PatientName.key()
-        << medMetaDataKeys::StudyDescription.key();
-
-    foreach( const QString & key, metaDataToCopy ) {
-        outputData->setMetaData(key, inputData->metadatas(key));
-    }
-
-    QString seriesDesc;
-    seriesDesc = tr("Segmented from ") + medMetaDataKeys::SeriesDescription.getFirstValue( inputData );
-
-    medMetaDataKeys::SeriesDescription.set(outputData,seriesDesc);
-}
-
-#define VTK_POLYGON_CERTAIN 1
-#define VTK_POLYGON_UNCERTAIN 0
-#define VTK_POLYGON_RAY_TOL 1.e-03 //Tolerance for ray firing
-#define VTK_POLYGON_MAX_ITER 10    //Maximum iterations for ray-firing
-#define VTK_POLYGON_VOTE_THRESHOLD 2
-#define VTK_POLYGON_FAILURE -1
-#define VTK_POLYGON_OUTSIDE 0
-#define VTK_POLYGON_INSIDE 1
-#define VTK_POLYGON_INTERSECTION 2
-#define VTK_POLYGON_ON_LINE 3
-#ifndef TRUE
-#define FALSE 0
-#define TRUE 1
-#endif
-
-//----------------------------------------------------------------------------
-// Determine whether point is inside polygon. Function uses ray-casting
-// to determine if point is inside polygon. Works for arbitrary polygon shape
-// (e.g., non-convex). Returns 0 if point is not in polygon; 1 if it is.
-// Can also return -1 to indicate degenerate polygon. Note: a point in
-// bounding box check is NOT performed prior to in/out check. You may want
-// to do this to improve performance.
-int bezierCurveToolBox::PointInPolygon (double x[3], int numPts, double *pts, 
-                                double bounds[6], double *n)
-{
-  double *x1, *x2, xray[3], u, v;
-  double rayMag, mag=1, ray[3];
-  int testResult, rayOK, status, numInts, i;
-  int iterNumber;
-  int maxComp, comps[2];
-  int deltaVotes;
-
-  // do a quick bounds check
-  if ( x[0] < bounds[0] || x[0] > bounds[1] ||
-       x[1] < bounds[2] || x[1] > bounds[3] ||
-       x[2] < bounds[4] || x[2] > bounds[5])
-    {
-    return VTK_POLYGON_OUTSIDE;
-    }
-  
-  //
-  //  Define a ray to fire.  The ray is a random ray normal to the
-  //  normal of the face.  The length of the ray is a function of the
-  //  size of the face bounding box.
-  //
-  for (i=0; i<3; i++)
-    {
-    ray[i] = ( bounds[2*i+1] - bounds[2*i] )*1.1 +
-      fabs((bounds[2*i+1] + bounds[2*i])/2.0 - x[i]);
-    }
-
-  if ( (rayMag = vtkMath::Norm(ray)) == 0.0 )
-    {
-    return VTK_POLYGON_OUTSIDE;
-    }
-
-  //  Get the maximum component of the normal.
-  //
-  if ( fabs(n[0]) > fabs(n[1]) )
-    {
-    if ( fabs(n[0]) > fabs(n[2]) ) 
-      {
-      maxComp = 0;
-      comps[0] = 1;
-      comps[1] = 2;
-      } 
-    else 
-      {
-      maxComp = 2;
-      comps[0] = 0;
-      comps[1] = 1;
-      }
-    }
-  else
-    {
-    if ( fabs(n[1]) > fabs(n[2]) ) 
-      {
-      maxComp = 1;
-      comps[0] = 0;
-      comps[1] = 2;
-      } 
-    else 
-      {
-      maxComp = 2;
-      comps[0] = 0;
-      comps[1] = 1;
-      }
-    }
-
-  //  Check that max component is non-zero
-  //
-  if ( n[maxComp] == 0.0 )
-    {
-    return VTK_POLYGON_FAILURE;
-    }
-
-  //  Enough information has been acquired to determine the random ray.
-  //  Random rays are generated until one is satisfactory (i.e.,
-  //  produces a ray of non-zero magnitude).  Also, since more than one
-  //  ray may need to be fired, the ray-firing occurs in a large loop.
-  //
-  //  The variable iterNumber counts the number of iterations and is
-  //  limited by the defined variable VTK_POLYGON_MAX_ITER.
-  //
-  //  The variable deltaVotes keeps track of the number of votes for
-  //  "in" versus "out" of the face.  When delta_vote > 0, more votes
-  //  have counted for "in" than "out".  When delta_vote < 0, more votes
-  //  have counted for "out" than "in".  When the delta_vote exceeds or
-  //  equals the defined variable VTK_POLYGON_VOTE_THRESHOLD, than the
-  //  appropriate "in" or "out" status is returned.
-  //
-  for (deltaVotes = 0, iterNumber = 1;
-       (iterNumber < VTK_POLYGON_MAX_ITER)
-         && (abs(deltaVotes) < VTK_POLYGON_VOTE_THRESHOLD);
-       iterNumber++) 
-    {
-    //
-    //  Generate ray
-    //
-    for (rayOK = FALSE; rayOK == FALSE; ) 
-      {
-      ray[comps[0]] = vtkMath::Random(-rayMag, rayMag);
-      ray[comps[1]] = vtkMath::Random(-rayMag, rayMag);
-      ray[maxComp] = -(n[comps[0]]*ray[comps[0]] + 
-                        n[comps[1]]*ray[comps[1]]) / n[maxComp];
-      if ( (mag = vtkMath::Norm(ray)) > rayMag*VTK_TOL )
-        {
-        rayOK = TRUE;
-        }
-      }
-
-    //  The ray must be appropriately sized.
-    //
-    for (i=0; i<3; i++)
-      {
-      xray[i] = x[i] + (rayMag/mag)*ray[i];
-      }
-
-    //  The ray may now be fired against all the edges
-    //
-    for (numInts=0, testResult=VTK_POLYGON_CERTAIN, i=0; i<numPts; i++) 
-      {
-      x1 = pts + 3*i;
-      x2 = pts + 3*((i+1)%numPts);
-
-      //   Fire the ray and compute the number of intersections.  Be careful
-      //   of degenerate cases (e.g., ray intersects at vertex).
-      //
-      if ((status=vtkLine::Intersection(x,xray,x1,x2,u,v)) == VTK_POLYGON_INTERSECTION) 
-        {
-        if ( (VTK_POLYGON_RAY_TOL < v) && (v < 1.0-VTK_POLYGON_RAY_TOL) )
-          {
-          numInts++;
-          }
-        else
-          {
-          testResult = VTK_POLYGON_UNCERTAIN;
-          }
-        } 
-      else if ( status == VTK_POLYGON_ON_LINE )
-        {
-        testResult = VTK_POLYGON_UNCERTAIN;
-        }
-      }
-    if ( testResult == VTK_POLYGON_CERTAIN ) 
-      {
-      if ( (numInts % 2) == 0)
-          {
-          --deltaVotes;
-          }
-      else
-        {
-        ++deltaVotes;
-        }
-      }
-    } //try another ray
-
-  //   If the number of intersections is odd, the point is in the polygon.
-  //
-  if ( deltaVotes < 0 )
-    {
-    return VTK_POLYGON_OUTSIDE;
-    }
-  else
-    {
-    qDebug()<<"deltaVotes "<<deltaVotes;
-    return VTK_POLYGON_INSIDE;
-    }
-}
+>>>>>>> 656a6a0c61fd1a043cd7a303d341a9837b4f138b
