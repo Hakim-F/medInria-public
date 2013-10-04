@@ -78,7 +78,7 @@ public:
     listOfPair_CurveSlice * getCoronalListOfCurves();
     listOfPair_CurveSlice * getSagittalListOfCurves();
     listOfPair_CurveSlice * getAxialListOfCurves();
-    int PointInPolygon (double x[3], int numPts, double *pts,double bounds[6], double *n);
+    int PointInPolygon (double x[3], int numPts, double *pts, double bounds[6], double *n);
 
 public slots:
 

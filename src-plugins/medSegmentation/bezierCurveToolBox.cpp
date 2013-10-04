@@ -80,6 +80,7 @@
 
 #include <vtkMath.h>
 #include <vtkLine.h>
+#include <itkVTKPolyDataReader.h>
 
 class bezierObserver : public vtkCommand
 {
@@ -1101,108 +1102,80 @@ void bezierCurveToolBox::generateBinaryImage(QList<QPair<vtkPolygon*,unsigned in
 {
     vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
     int *dims = view2d->GetImageInput(0)->GetDimensions();
-   /*qDebug() <<" NUMBER OF CELLS " <<poly->GetNumberOfCells();
-    qDebug() <<" NUMBER OF POINTS " <<poly->GetNumberOfPoints();
-
-    for(int j=0;j<dims[0];j++)
-    {
-        for(int k=0;k<dims[1];k++)
-        {
-            for(int i=0;i<dims[2];i++)
-            {
-                vtkCellArray * polys = poly->GetPolys();
-                for(int c = 0;c<polys->GetNumberOfCells();c++)
-                {
-                    vtkPolygon * polygonTest = dynamic_cast<vtkPolygon*>(polys->getCell);
-                    double bounds[6];
-                    double pointTest[3];
-                    double n[3];
-                    polygonTest->ComputeNormal(polygonTest->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polygonTest->GetPoints()->GetData()->GetVoidPointer(0)), n);
-                    pointTest[0]=j;
-                    pointTest[0]=k;
-                    pointTest[0]=i;
-                    polygonTest->GetBounds(bounds);
-                    int val = polygonTest->PointInPolygon(pointTest,polygonTest->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polygonTest->GetPoints()->GetData()->GetVoidPointer(0)),
-                        bounds,n);
-                    if (val)
-                    {
-                        double * pixel = static_cast<double*>(view2d->GetImageInput(0)->GetScalarPointer(j,k,i));
-                        pixel[0]=0;pixel[1]=0;pixel[2]=0;
-                    }
-                }
-            }
-        }
-    }*/
-
-
-    //for(int i=0;i<poly->GetNumberOfPoints();i++)
-    //{   
-    //        vtkPoints * points = poly->GetPoints();
-    //        double pointDouble[3];
-    //        points->GetPoint(i,pointDouble);
-    //        int x,y,z;
-    //        x= (int)pointDouble[0];
-    //        y= (int)pointDouble[1];
-    //        z= (int)pointDouble[2];
-    //        
-
-
-
-            //qDebug() <<" x : " << x << " y : " << y << " z : " << z ;
-            //qDebug() <<" xdim : "<<dims[0] << " ydim : "<<dims[1] << " zdim : "<< dims[2];
-            //if ((dims[0]<=x || dims[1]<=y || dims[2]<=z || x<=0 || y<=0 || z<=0))
-              //  continue;
-            //qDebug() << "i " << i;
-            //double * pixel = static_cast<double*>(view2d->GetImageInput(0)->GetScalarPointer(350,350,100));
-    //        //pixel[0]=0;pixel[1]=0;pixel[2]=0;
-    //}
     typedef itk::Image<unsigned char,3> MaskType;
     dtkSmartPointer<medAbstractData> m_maskData = dtkAbstractDataFactory::instance()->createSmartPointer( medProcessPaintSegm::MaskImageTypeIdentifier() );
     initializeMaskData(dynamic_cast<medAbstractData*>(this->segmentationToolBox()->viewData(currentView)),m_maskData);
     MaskType::Pointer m_itkMask = dynamic_cast<MaskType*>( reinterpret_cast<itk::Object*>(m_maskData->data()) );
     bool firstime = true;
-    for(int j=0;j<dims[0];j++)
+    QList<double*> boundsList;
+    
+    QList<QList<double>> normalList;
+    
+    double bigBounds[6]={99999,-99999,99999,-99999,99999,-99999};
+    for(int c=0;c<polys.size();c++)
     {
-        for(int k=0;k<dims[1];k++)
+        double bounds[6];
+        polys[c].first->GetBounds(bounds);
+        if (bounds[0]<bigBounds[0])
+            bigBounds[0]=bounds[0];
+        if (bounds[1]>bigBounds[1])
+            bigBounds[1]=bounds[1];
+        if (bounds[2]<bigBounds[2])
+            bigBounds[2]=bounds[2];
+        if (bounds[3]>bigBounds[3])
+            bigBounds[3]=bounds[3];
+        if (bounds[4]<bigBounds[4])
+            bigBounds[4]=bounds[4];
+        if (bounds[5]>bigBounds[5])
+            bigBounds[5]=bounds[5];
+
+        boundsList.append(polys[c].first->GetBounds());
+// PROBLEME HERE !! NORMAL AND BOUNDS IN LIST !! 
+        double n[3];
+        polys[c].first->ComputeNormal(polys[c].first->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polys[c].first->GetPoints()->GetData()->GetVoidPointer(0)), n);
+        //normalList.append(n);
+        QList<double> normal;
+        normal.append(n[0]);
+        normal.append(n[1]);
+        normal.append(n[2]);
+        normalList.append(normal);
+        
+    }
+    
+    for(int i=bigBounds[0];i<=bigBounds[1];i++)
+    {
+        for(int j=bigBounds[2];j<=bigBounds[3];j++)
         {
-            for(int c=0;c<polys.size();c++)
+            for(int k=0;k<polys.size();k++)
             {
-                    double bounds[6];
                     double pointTest[3];
                     double n[3];
-                    
-                    polys[c].first->ComputeNormal(polys[c].first->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polys[c].first->GetPoints()->GetData()->GetVoidPointer(0)), n);
-                    
-                    pointTest[0]=j;
-                    pointTest[1]=k;
-                    pointTest[2]=polys[c].second;
-                    polys[c].first->GetBounds(bounds);
-                    int val =PointInPolygon(pointTest,polys[c].first->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polys[c].first->GetPoints()->GetData()->GetVoidPointer(0)),
-                        bounds,n);
-                    if (firstime)
-                    {
-                        qDebug() << "n[0] : " << n[0] << " n[1] : " << n[1] << " n[2] : " << n[2];
-                        qDebug() << "bounds " << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " << bounds[4] << " " << bounds[5];
-                        qDebug() << "val : " << val;
-                        qDebug() << "polys[c].second : " << polys[c].second;
 
-                        
-                    }
-                   
-                    if (val==1)
+                    n[0]=normalList[k][0];
+                    n[1]=normalList[k][1];
+                    n[2]=normalList[k][2];
+
+
+                    pointTest[0]=i;
+                    pointTest[1]=j;
+                    pointTest[2]=polys[k].second;
+                    
+                    int val =PointInPolygon(pointTest,polys[k].first->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polys[k].first->GetPoints()->GetData()->GetVoidPointer(0)),
+                        boundsList[k],n);
+                    if (i==400 && j == 300)
                     {
-                        if (j==400 && k==300)
-                        {
-                            qDebug() << "IM IN " << polys[c].second << " nb " << polys[c].first->GetPoints()->GetNumberOfPoints();
-                        }
-                        double * pixel = static_cast<double*>(view2d->GetImageInput(0)->GetScalarPointer(j,k,polys[c].second));
-                        pixel[0]=0;pixel[1]=0;pixel[2]=0;
+                        qDebug() << boundsList[k][0] <<" "<< boundsList[k][1] << " "<< boundsList[k][2] << " "<< boundsList[k][3] << " "<< boundsList[k][4] << " "<< boundsList[k][5];
+                        qDebug() << normalList[k][0] << " "<< normalList[k][1] << " "<< normalList[k][2];
+                        qDebug() << k << " YOU GOT TO BE KIDDING ME " << val; 
+                    }
+                    
+                    if (val)
+                    {
                         MaskType::IndexType index;
-                        index[0]=j;index[1]=k;index[2]=polys[c].second;
+                        index[0]=i;index[1]=j;index[2]=polys[k].second;
                         m_itkMask->SetPixel(index,1);
                     }
             }
-            firstime = false;
         }
     }
     this->setOutputMetadata(dynamic_cast<medAbstractData*>(this->segmentationToolBox()->viewData(currentView)), m_maskData);
@@ -1254,6 +1227,9 @@ void bezierCurveToolBox::generateBinaryImage(QList<QPair<vtkPolygon*,unsigned in
     //writer->SetInput(imgstenc->GetOutput());
 
     //writer->Write();  
+
+
+    
     
 }
 
@@ -1511,6 +1487,11 @@ int bezierCurveToolBox::PointInPolygon (double x[3], int numPts, double *pts,
       {
       x1 = pts + 3*i;
       x2 = pts + 3*((i+1)%numPts);
+      if (x1[0]==x2[0] && x1[1]==x2[1] && x1[2]==x2[2])
+      {
+          //qDebug() << "Same point";
+          continue;
+      }
 
       //   Fire the ray and compute the number of intersections.  Be careful
       //   of degenerate cases (e.g., ray intersects at vertex).
@@ -1552,7 +1533,7 @@ int bezierCurveToolBox::PointInPolygon (double x[3], int numPts, double *pts,
     }
   else
     {
-    qDebug()<<"deltaVotes "<<deltaVotes;
+    //qDebug()<<"deltaVotes "<<deltaVotes;
     return VTK_POLYGON_INSIDE;
     }
 }
