@@ -1685,7 +1685,10 @@ char AlgorithmPaintToolbox::computePlaneIndex(const QVector3D & vec,MaskType::In
         {
             double dotProduct = 0;
             for (unsigned int j = 0;j < 3;++j)
+            {
                 dotProduct += direction(j,i) * vecVpn[j];
+                qDebug() << "direction(j,i) : " << direction(j,i);
+            }
 
             if (fabs(dotProduct) > absDotProductMax)
             {
