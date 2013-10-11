@@ -32,7 +32,7 @@
 #include <vtkRenderWindowInteractor.h> 
 #include <vtkOrientedGlyphFocalPlaneContourRepresentation.h>
 #include <vector>
-#include <vtkBalloonWidget.h>
+#include <vtkConstantBalloonWidget.h>
 #include <vtkPolygon.h>
 
 #include <itkImage.h>
@@ -146,7 +146,7 @@ private:
     listOfPair_CurveSlice  * listOfCurvesForCoronal;
 
     vtkSmartPointer<vtkContourWidget> currentContour;
-    vtkSmartPointer<vtkBalloonWidget> currentBalloon;
+    vtkSmartPointer<vtkConstantBalloonWidget> currentBalloon;
 
     QList<vtkSmartPointer<vtkPolyData> > * ListOfContours; // buffer for copy/paste
 
