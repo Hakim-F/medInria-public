@@ -24,6 +24,7 @@ vtkInteractorStyleTrackballCamera2.cxx
 #vtkBrushRepresentation.cxx
 vtkContourOverlayRepresentation.cxx
 vtkConstantBalloonWidget.cxx
+vtkInriaImageActorPointPlacer.cxx
 )
 
 set(${PROJECT_NAME}_LIBS

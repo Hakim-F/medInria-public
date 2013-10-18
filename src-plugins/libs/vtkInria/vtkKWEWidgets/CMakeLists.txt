@@ -123,7 +123,9 @@ set(KIT_LIBS vtkWidgets
              vtkRendering
              vtkFiltering
              vtkCommon
-             vtkImaging )
+             vtkImaging 
+             vtkWidgetsAddOn
+             )
 IF(VTKEdge_USE_ITK)
   set (KIT_LIBS ${KIT_LIBS} ITKCommon ITKBasicFilters )
 ENDIF(VTKEdge_USE_ITK)

@@ -30,10 +30,10 @@
 #define __vtkKWEVoxelAlignedImageActorPointPlacer_h
 
 #include "vtkKWEWidgetsExport.h" // needed for export symbols directives
-#include "vtkImageActorPointPlacer.h"
+#include "vtkInriaImageActorPointPlacer.h"
 
 class VTKEdge_WIDGETS_EXPORT vtkKWEVoxelAlignedImageActorPointPlacer
-                            : public vtkImageActorPointPlacer
+                            : public vtkInriaImageActorPointPlacer
 {
 public:
   // Description:
@@ -43,7 +43,7 @@ public:
   // Description:
   // Standard methods for instances of this class.
   vtkTypeRevisionMacro(vtkKWEVoxelAlignedImageActorPointPlacer,
-                       vtkImageActorPointPlacer);
+                       vtkInriaImageActorPointPlacer);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
