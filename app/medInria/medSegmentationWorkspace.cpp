@@ -157,7 +157,7 @@ void medSegmentationWorkspace::buildWorkspace(  )
     this->addToolBox( d->segmentationToolBox );
 }
 
-medSegmentationSelectorToolBox * medSegmentationWorkspace::segmentationToobox()
+medSegmentationSelectorToolBox * medSegmentationWorkspace::segmentationToolBox()
 {
     return d->segmentationToolBox;
 }
