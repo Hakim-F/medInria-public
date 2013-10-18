@@ -131,6 +131,7 @@ add_subdirectory(vtkWidgetsAddOn)
 add_subdirectory(vtkVisuManagement)
 add_subdirectory(HWShading)
 add_subdirectory(itkAddOn)
+add_subdirectory(vtkKWEWidgets)
 
 if (VTKINRIA_BUILD_EXAMPLES)
   add_subdirectory(Examples)

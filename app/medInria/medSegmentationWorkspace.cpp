@@ -24,6 +24,7 @@
 #include <medVisualizationLayoutToolBox.h>
 #include <medViewPropertiesToolBox.h>
 #include <medToolBoxFactory.h>
+#include <medRoiManagementToolBox.h>
 
 #include <dtkLog/dtkLog.h>
 
@@ -44,6 +45,7 @@ public:
     medViewPropertiesToolBox *viewPropertiesToolBox;
 
     medSegmentationSelectorToolBox *segmentationToolBox;
+    medRoiManagementToolBox * roiManagementToolBox;
 };
 
 // /////////////////////////////////////////////////////////////////
@@ -57,6 +59,7 @@ medSegmentationWorkspace::medSegmentationWorkspace(QWidget * parent /* = NULL */
 medWorkspace(parent), d(new medSegmentationWorkspacePrivate)
 {
     d->segmentationToolBox = new medSegmentationSelectorToolBox(this, parent );
+    d->roiManagementToolBox = new medRoiManagementToolBox(this,parent);
 
     connect(d->segmentationToolBox, SIGNAL(addToolBox(medToolBox *)), this, SLOT(addToolBox(medToolBox *)));
     connect(d->segmentationToolBox, SIGNAL(removeToolBox(medToolBox *)), this, SLOT(removeToolBox(medToolBox *)));
@@ -89,6 +92,7 @@ medWorkspace(parent), d(new medSegmentationWorkspacePrivate)
 
     this->addToolBox( d->layoutToolBox );
     this->addToolBox( d->viewPropertiesToolBox );
+    this->addToolBox( d->roiManagementToolBox );
     this->addToolBox( d->segmentationToolBox );
 }
 
@@ -152,7 +156,7 @@ void medSegmentationWorkspace::buildWorkspace(  )
     this->addToolBox( d->segmentationToolBox );
 }
 
-medSegmentationSelectorToolBox * medSegmentationWorkspace::segmentationToobox()
+medSegmentationSelectorToolBox * medSegmentationWorkspace::segmentationToolBox()
 {
     return d->segmentationToolBox;
 }

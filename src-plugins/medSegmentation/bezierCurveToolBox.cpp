@@ -83,15 +83,24 @@
 #include <itkVTKPolyDataReader.h>
 #include <vtkMatrix4x4.h>
 #include <msegAlgorithmPaintToolbox.h>
+#include <medAbstractRoi.h>
 
-class bezierObserver : public vtkCommand
+#include <vtkKWEWidgets/vtkKWEPaintbrushWidget.h>
+#include <vtkKWEWidgets/vtkKWEPaintbrushRepresentation2D.h>
+#include <vtkKWEWidgets/vtkKWEPaintbrushOperation.h>
+#include <vtkKWEWidgets/vtkKWEPaintbrushShape.h>
+#include <vtkKWEWidgets/vtkKWEWidgetGroup.h>
+#include <vtkKWEWidgets/vtkKWEPaintbrushDrawing.h>
+
+
+class contourWidgetObserver : public vtkCommand
 {
 public:
     typedef QPair<unsigned int,unsigned int> PlaneIndexSlicePair;
 
-    static bezierObserver* New()
+    static contourWidgetObserver* New()
     {
-        return new bezierObserver;
+        return new contourWidgetObserver;
     }
 
     void Execute ( vtkObject *caller, unsigned long event, void *callData );
@@ -99,7 +108,7 @@ public:
     void setView ( vtkImageView2D *view )
     {
         this->view = view;
-        view->AddObserver(vtkImageView2D::SliceChangedEvent,this);
+        //view->AddObserver(vtkImageView2D::SliceChangedEvent,this);
     }
 
     void setToolBox ( bezierCurveToolBox * toolBox )
@@ -117,8 +126,8 @@ public:
     }
 
 protected:
-    bezierObserver();
-    ~bezierObserver();
+    contourWidgetObserver();
+    ~contourWidgetObserver();
 
 private:
     int m_lock;
@@ -126,14 +135,14 @@ private:
     bezierCurveToolBox * toolBox;
 };
 
-bezierObserver::bezierObserver()
+contourWidgetObserver::contourWidgetObserver()
 {
     this->m_lock = 0;
 }
 
-bezierObserver::~bezierObserver(){}
+contourWidgetObserver::~contourWidgetObserver(){}
 
-void bezierObserver::Execute ( vtkObject *caller, unsigned long event, void *callData )
+void contourWidgetObserver::Execute ( vtkObject *caller, unsigned long event, void *callData )
 {
     if ( this->m_lock )
         return;
@@ -146,29 +155,29 @@ void bezierObserver::Execute ( vtkObject *caller, unsigned long event, void *cal
     case vtkCommand::StartInteractionEvent:
         {
             vtkContourWidget * contour = dynamic_cast<vtkContourWidget*>(caller);
-            switch (view->GetViewOrientation())
-            {    
-                qDebug() << "view->GetSlice() : " << view->GetSlice(); 
-            case 0:
-                {
-                    toolBox->getSagittalListOfCurves()->append(QPair<vtkSmartPointer<vtkContourWidget>,PlaneIndexSlicePair>(contour,PlaneIndexSlicePair(view->GetSlice(),toolBox->computePlaneIndex())));
-                    break;
-                }
-            case 1:
-                {
-                    toolBox->getCoronalListOfCurves()->append(QPair<vtkSmartPointer<vtkContourWidget>,PlaneIndexSlicePair>(contour,PlaneIndexSlicePair(view->GetSlice(),toolBox->computePlaneIndex())));
-                    break;
-                }
-            case 2:
-                    toolBox->getAxialListOfCurves()->append(QPair<vtkSmartPointer<vtkContourWidget>,PlaneIndexSlicePair>(contour,PlaneIndexSlicePair(view->GetSlice(),toolBox->computePlaneIndex())));
+            
+            if (!toolBox->viewsRoisMap.contains(toolBox->currentView))
+            {
+                QList<medAbstractRoi*> * listRois = new QList<medAbstractRoi*>();
+                toolBox->viewsRoisMap.insert(toolBox->currentView,listRois);
             }
-            break;
-        }
-    case vtkImageView2D::SliceChangedEvent:
-        {
-            toolBox->hideContour();
-            toolBox->showContour();
-            break;
+
+            if (!toolBox->viewsPlaneIndex.contains(toolBox->currentView))
+            {
+                QList<int> * planeIndexes=new QList<int>();
+                planeIndexes->reserve(3);
+                toolBox->viewsPlaneIndex.insert(toolBox->currentView,planeIndexes);
+            }
+
+            toolBox->currentBezierRoi->setIdSlice(view->GetSlice());
+            toolBox->currentBezierRoi->setOrientation(view->GetViewOrientation());
+
+            QList<medAbstractRoi*> * listRois = toolBox->viewsRoisMap.value(toolBox->currentView);
+            QList<int> * planeIndexes= toolBox->viewsPlaneIndex.value(toolBox->currentView);
+
+            listRois->append(toolBox->currentBezierRoi); // save bezierRoi
+            planeIndexes->replace(view->GetViewOrientation(),toolBox->computePlaneIndex()); // save PlaneIndex for this view and orientation TODO : improve this so that we do it only once for each orientation
+            
         }
     case vtkCommand::EndInteractionEvent:
         {
@@ -191,33 +200,22 @@ medSegmentationAbstractToolBox( parent)
     addNewCurve = new QPushButton(tr("Closed Polygon"),displayWidget);
     addNewCurve->setToolTip(tr("Activate closed polygon mode"));
     connect(addNewCurve,SIGNAL(clicked()),this,SLOT(onAddNewCurve()));
-
-    penMode_CheckBox = new QCheckBox(tr("pen mode"),displayWidget);
-    penMode_CheckBox->setToolTip(tr("Activate continuous draw"));
-    connect(penMode_CheckBox,SIGNAL(stateChanged(int)),this,SLOT(onPenMode()));
-
+    
     generateBinaryImage_button = new QPushButton(tr("Generate Binary Image"),displayWidget);
     
     connect(generateBinaryImage_button,SIGNAL(clicked()),this,SLOT(generateBinaryImage()));
 
     currentView = NULL;
-    newCurve = false;
-    penMode = false;
 
     QHBoxLayout * ButtonLayout = new QHBoxLayout();
     layout->addLayout( ButtonLayout );
     layout->addWidget(addNewCurve);
     layout->addWidget(generateBinaryImage_button);
-    layout->addWidget(penMode_CheckBox);
 
-    listOfCurvesForSagittal = new QList<QPair<vtkSmartPointer<vtkContourWidget>,PlaneIndexSlicePair> >();
-    listOfCurvesForAxial = new QList<QPair<vtkSmartPointer<vtkContourWidget>,PlaneIndexSlicePair> >();
-    listOfCurvesForCoronal = new QList<QPair<vtkSmartPointer<vtkContourWidget>,PlaneIndexSlicePair> >();
-
-    observer = bezierObserver::New();
+    observer = contourWidgetObserver::New();
     observer->setToolBox(this);
 
-    currentContour = NULL;
+    currentBezierRoi = NULL;
     currentOrientation = -1;
     currentSlice = 0;
 
@@ -399,6 +397,7 @@ void bezierCurveToolBox::update(dtkAbstractView *view)
     currentView=cast;
     observer->setView(static_cast<vtkImageView2D *>(currentView->getView2D()));
     
+    //connect(cast,SIGNAL(sliceChanged(int,bool)),this,SIGNAL(viewSliceChanged(int)),Qt::UniqueConnection);
     //QObject::connect(d->currentView, SIGNAL(dataAdded(dtkAbstractData*, int)),
     //                 this, SLOT(addData(dtkAbstractData*, int)),
     //                 Qt::UniqueConnection);
@@ -425,67 +424,86 @@ void bezierCurveToolBox::onAddNewCurve()
     if (!currentView)
         return;
 
-    newCurve = true;
     vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
 
-    vtkSmartPointer<vtkContourOverlayRepresentation> contourRep = vtkSmartPointer<vtkContourOverlayRepresentation>::New();
-    contourRep->GetLinesProperty()->SetColor(0, 0, 1); 
-    contourRep->GetLinesProperty()->SetLineWidth(1);
-    contourRep->GetProperty()->SetPointSize(4);
 
-    currentContour = vtkSmartPointer<vtkContourWidget>::New();
-    currentContour->SetRepresentation(contourRep);
-    currentContour->SetInteractor(view2d->GetInteractor());
+    /*--------------------------------------PLAYING WITH VTKEDGE-----------------------------------------------*/
+    setOfWidget = vtkKWEWidgetGroup::New();
+    currentPaintWidget = vtkKWEPaintbrushWidget::New();
+    currentPaintWidget->SetInteractor( view2d->GetInteractor());
+    //vtkKWEPaintbrushRepresentation2D * rep = vtkKWEPaintbrushRepresentation2D::SafeDownCast(currentPaintWidget->GetRepresentation());
+    vtkKWEPaintbrushRepresentation2D * rep = vtkKWEPaintbrushRepresentation2D::New();
+    currentPaintWidget->SetRepresentation(rep);
+    if (rep)
+      {
+        vtkImageActor * imageActor = view2d->GetImageActor(0);
+        vtkImageData * imageData = view2d->GetInput();
+      rep->SetImageActor(imageActor);
+      rep->SetImageData(imageData);
+      rep->GetPaintbrushOperation()->GetPaintbrushShape()->SetSpacing(
+          imageData->GetSpacing() );
+      rep->GetPaintbrushOperation()->GetPaintbrushShape()->SetOrigin(
+          imageData->GetOrigin() );
+      }
+
+    currentPaintWidget->SetPaintbrushMode( vtkKWEPaintbrushWidget::Edit );
+    setOfWidget->AddWidget(currentPaintWidget);
+    vtkKWEPaintbrushDrawing * drawing = rep->GetPaintbrushDrawing();
+    drawing->SetRepresentationToBinary();
+    rep->SetSingleSliceThickBrush(true);
     
-    if (penMode)
-        currentContour->ContinuousDrawOn();
+    //// Our internal representation will be to manage a label map.
+    //drawing->SetRepresentationToLabel();
 
-    currentContour->GetEventTranslator()->SetTranslation(vtkCommand::RightButtonPressEvent,NULL);
+    //// This will allocate our canvas based on the size of the overlay image
+    //// that was set on the WidgetRepresentation.
+    //drawing->InitializeData();
+
+    //// Clear the drawing and start on a clean slate. The drawing would have
+    //// automatically created 1 empty sketch for us, so we can start drawing
+    //// right away. Let's remove it, since we'd like to initialize the drawing
+    //// with our IBSR label map.
+    //drawing->RemoveAllItems();
+    
+    setOfWidget->SetEnabled(1);
+
+
+
+
+
+
+
+    /********************************************---------------------------------*******************************/
+
+    /*currentBezierRoi = new bezierPolygonRoi(view2d);
+
+    vtkContourWidget * currentContour = currentBezierRoi->getContour();
+       
     currentContour->AddObserver(vtkCommand::StartInteractionEvent,observer); 
     currentContour->AddObserver(vtkCommand::EndInteractionEvent,observer);
     
     currentContour->On();
     currentOrientation = view2d->GetViewOrientation(); 
-    currentSlice = view2d->GetSlice();
+    currentSlice = view2d->GetSlice();*/
 
      //Create balloonWidget
-    vtkSmartPointer<vtkBalloonRepresentation> balloonRep = vtkSmartPointer<vtkBalloonRepresentation>::New();
-    balloonRep->SetBalloonLayoutToTextRight();
+    //vtkSmartPointer<vtkBalloonRepresentation> balloonRep = vtkSmartPointer<vtkBalloonRepresentation>::New();
+    //balloonRep->SetBalloonLayoutToTextRight();
 
-    currentBalloon = vtkSmartPointer<vtkConstantBalloonWidget>::New();
-    currentBalloon->SetInteractor(view2d->GetInteractor());
-    currentBalloon->SetRepresentation(balloonRep);
-    currentBalloon->AddBalloon(contourRep,"Area : ??\nMean : ?? SDev : ?? Sum : ??\nMin : ?? Max : ?? \nLength : ??"); //,view2d->GetImageInput(0)
-    currentBalloon->On();
-    currentBalloon->SetTimerDuration(0);
-    currentBalloon->AttachToRightNode(contourRep);
+    //currentBalloon = vtkSmartPointer<vtkConstantBalloonWidget>::New();
+    //currentBalloon->SetInteractor(view2d->GetInteractor());
+    //currentBalloon->SetRepresentation(balloonRep);
+    //currentBalloon->AddBalloon(currentContour->GetContourRepresentation(),"Area : ??\nMean : ?? SDev : ?? Sum : ??\nMin : ?? Max : ?? \nLength : ??"); //,view2d->GetImageInput(0)
+    //currentBalloon->On();
+    //currentBalloon->SetTimerDuration(0);
+    //currentBalloon->AttachToRightNode(currentContour->GetContourRepresentation());
     //balloonRep->VisibilityOn();
-}
-
-void bezierCurveToolBox::onPenMode()
-{
-    penMode = penMode_CheckBox->isChecked();
-}
-
-bezierCurveToolBox::listOfPair_CurveSlice * bezierCurveToolBox::getSagittalListOfCurves()
-{
-    return listOfCurvesForSagittal;
-}
-
-bezierCurveToolBox::listOfPair_CurveSlice * bezierCurveToolBox::getCoronalListOfCurves()
-{
-    return listOfCurvesForCoronal;
-}
-
-bezierCurveToolBox::listOfPair_CurveSlice * bezierCurveToolBox::getAxialListOfCurves()
-{
-    return listOfCurvesForAxial;
 }
 
 // this method shows the contours present on the currentOrientation and currentSlice. This method updates the currentOrientation and currentSlice variables 
 // before showing the contours
 
-void bezierCurveToolBox::showContour()
+/*void bezierCurveToolBox::showContour(medAbstractView * view)
 {
     if (!currentView)
         return;
@@ -497,25 +515,23 @@ void bezierCurveToolBox::showContour()
     
     currentOrientation = view2d->GetViewOrientation();
     currentSlice = view2d->GetSlice();
-
-    listOfPair_CurveSlice * list = getListOfCurrentOrientation();
+    
+    QList<medAbstractRoi*> * list = getHashOfCurrentOrientation(view);
 
     if (!list)
         return;
 
-    for(int i=0;i<list->size();i++)
-        if (list->at(i).second.first==currentSlice)
-            list->at(i).first->On();
+    if (list->contains(currentSlice))
+        hash->value(currentSlice)->On();
 }
 
-// this method hides the contours present in the currentOrientation and currentSlice. This method updates the currentOrientation and currentSlice only 
-// if they were not initialized after construction of the instance of the class
-void bezierCurveToolBox::hideContour()
+// this method hides the contours present in the currentOrientation and currentSlice. 
+void bezierCurveToolBox::hideContour(medAbstractView * view)
 {
-    if (!currentView)
+    if (!view)
         return;
 
-    vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
+    vtkImageView2D * view2d = static_cast<vtkImageView2D *>(view->getView2D());
 
     if (currentOrientation == -1 && !currentSlice)
         return;
@@ -523,32 +539,22 @@ void bezierCurveToolBox::hideContour()
     if (!view2d->GetRenderWindow())
         return;
     
-    listOfPair_CurveSlice * list = getListOfCurrentOrientation();
+    QMultiHash<unsigned int,medAbstractRoi*> * hash = getHashOfCurrentOrientation(view);
 
-    if (!list)
+    if (!hash)
         return;
 
-    for(int i=0;i<list->size();i++)
-        if (list->at(i).second.first==currentSlice)
-            list->at(i).first->Off();
-}
+    if (hash->contains(currentSlice))
+        hash->value(currentSlice)->Off();
+}*/
 
-bezierCurveToolBox::listOfPair_CurveSlice * bezierCurveToolBox::getListOfCurrentOrientation()
+QList<medAbstractRoi*> * bezierCurveToolBox::getListOfView(medAbstractView * view)
 {
-    switch (currentOrientation)
-    {    
-    case 0:
-        return listOfCurvesForSagittal;
-    case 1:
-        return listOfCurvesForCoronal;
-    case 2:
-        return listOfCurvesForAxial;
-    }
-    return NULL;
+    return viewsRoisMap.value(view);
 }
 
 // For the time these function copy and paste all the contours present on a slice. No selection of a contour is possible.
-void bezierCurveToolBox::copyContours()
+/*void bezierCurveToolBox::copyContours()
 {
     if (!currentView)
         return;
@@ -570,16 +576,16 @@ void bezierCurveToolBox::copyContours()
             vtkSmartPointer<vtkPolyData> polydata = list->at(i).first->GetContourRepresentation()->GetContourRepresentationAsPolyData();
             ListOfContours->append(polydata);    
         }
-}
+}*/
 
-void bezierCurveToolBox::pasteContours()
+/*void bezierCurveToolBox::pasteContours()
 {
     vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
     currentSlice = view2d->GetSlice();
     pasteContours(currentSlice,currentSlice);
-}
+}*/
 
-void bezierCurveToolBox::pasteContours(int slice1,int slice2)
+/*void bezierCurveToolBox::pasteContours(int slice1,int slice2)
 {
     if (!currentView)
         return;
@@ -622,8 +628,7 @@ void bezierCurveToolBox::pasteContours(int slice1,int slice2)
 
             vtkSmartPointer<vtkDecimatePolylineFilter> filter = vtkSmartPointer<vtkDecimatePolylineFilter>::New();
             filter->SetInput(ListOfContours->at(i));
-            contour->GetEventTranslator()->SetTranslation(vtkCommand::RightButtonPressEvent,NULL);
-
+            
             qDebug() << "Number of lines in the copied polyData : " << ListOfContours->at(i)->GetNumberOfLines();
             
             filter->Update();
@@ -636,9 +641,9 @@ void bezierCurveToolBox::pasteContours(int slice1,int slice2)
         }
     }
     currentView->update();
-}
+}*/
 
-void bezierCurveToolBox::propagateCurve()
+/*void bezierCurveToolBox::propagateCurve()
 {
     if (!currentView)
         return;
@@ -647,7 +652,7 @@ void bezierCurveToolBox::propagateCurve()
     int slice1 = bound1->value()-1;
     int slice2 = bound2->value()-1;
     pasteContours(slice1,slice2);
-}
+}*/
 
 void bezierCurveToolBox::reorderPolygon(vtkPolyData * poly)
 {
@@ -794,38 +799,56 @@ QList<vtkPolyData* > bezierCurveToolBox::generateIntermediateCurves(vtkSmartPoin
 
 void bezierCurveToolBox::interpolateCurve()
 {
+    currentPaintWidget->SetPaintbrushMode(1);
     if (!currentView)
         return;
 
     vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
-    listOfPair_CurveSlice * list = getListOfCurrentOrientation();
+    
+    ListRois list = getListOfView(currentView);
+
+    if (!list || list->isEmpty())
+        return;
+
+    int orientation = view2d->GetViewOrientation();
     
     int maxSlice = 0;
     int minSlice = 999999;
     
     for(int i=0;i<list->size();i++)
     {
-        if (list->at(i).second.first>maxSlice)
-            maxSlice = list->at(i).second.first;
-        if (list->at(i).second.first<minSlice)
-            minSlice = list->at(i).second.first;
+        bezierPolygonRoi * polyRoi = dynamic_cast<bezierPolygonRoi*>(list->at(i));
+        if (polyRoi->getOrientation()==orientation)
+        {
+            int idSlice = polyRoi->getIdSlice();
+            if (idSlice>maxSlice)
+                maxSlice = idSlice;
+            if (idSlice<minSlice)
+                minSlice = idSlice;
+        }
     }
-    
+
     vtkSmartPointer<vtkPolyData> curve1;
     vtkSmartPointer<vtkPolyData> curve2;
     int curve1NbNode, curve2NbNode;
 
     for(int i=0;i<list->size();i++)
     {
-        if (list->at(i).second.first==maxSlice)
+        bezierPolygonRoi * polyRoi = dynamic_cast<bezierPolygonRoi*>(list->at(i));
+        if (polyRoi->getOrientation()==orientation)
         {
-            curve1 = list->at(i).first->GetContourRepresentation()->GetContourRepresentationAsPolyData();
-            curve1NbNode = list->at(i).first->GetContourRepresentation()->GetNumberOfNodes();
-        }
-        if (list->at(i).second.first==minSlice)
-        {
-            curve2 = list->at(i).first->GetContourRepresentation()->GetContourRepresentationAsPolyData();
-            curve2NbNode = list->at(i).first->GetContourRepresentation()->GetNumberOfNodes();
+            int idSlice = polyRoi->getIdSlice();
+            vtkContourWidget * contour = polyRoi->getContour();
+            if (idSlice==maxSlice)
+            {
+                curve1 = contour->GetContourRepresentation()->GetContourRepresentationAsPolyData();
+                curve1NbNode = contour->GetContourRepresentation()->GetNumberOfNodes();
+            }
+            if (idSlice==minSlice)
+            {
+                curve2 = contour->GetContourRepresentation()->GetContourRepresentationAsPolyData();
+                curve2NbNode = contour->GetContourRepresentation()->GetNumberOfNodes();
+            }
         }
     }
 
@@ -837,20 +860,10 @@ void bezierCurveToolBox::interpolateCurve()
 
     for (int i = minSlice+1;i<maxSlice;i++)
     {
-        vtkSmartPointer<vtkContourOverlayRepresentation> contourRep = vtkSmartPointer<vtkContourOverlayRepresentation>::New();
-        contourRep->GetLinesProperty()->SetColor(0, 0, 1); 
-        contourRep->GetLinesProperty()->SetLineWidth(1);
-        contourRep->GetProperty()->SetPointSize(4);
-        
-        vtkSmartPointer<vtkContourWidget> contour = vtkSmartPointer<vtkContourWidget>::New();
-        
-        contour->SetRepresentation(contourRep);
-        
-        contour->GetEventTranslator()->SetTranslation(vtkCommand::RightButtonPressEvent,NULL);
-        contourRep->SetRenderer(view2d->GetRenderer());
-        contour->SetInteractor(view2d->GetInteractor());
-        
+        bezierPolygonRoi * polyRoi = new bezierPolygonRoi(view2d);
+        vtkContourWidget * contour = polyRoi->getContour();
         contour->Initialize(listPolyData.at(i-(minSlice+1))); 
+        vtkContourRepresentation * contourRep = contour->GetContourRepresentation();
         
         int nbPoints = contourRep->GetNumberOfNodes();
         int div = floor(nbPoints/(double)number);
@@ -867,9 +880,9 @@ void bezierCurveToolBox::interpolateCurve()
                 }
         }
         contourRep->SetClosedLoop(1); 
-        if (currentSlice==i)
-            contour->On();
-        list->append(QPair<vtkSmartPointer<vtkContourWidget>,PlaneIndexSlicePair>(contour,PlaneIndexSlicePair(i,computePlaneIndex())));
+                
+        polyRoi->setIdSlice(i);
+        list->append(polyRoi);
     }
     currentView->update();
 }
@@ -880,35 +893,28 @@ void bezierCurveToolBox::generateBinaryImage()
         return;
 
     vtkImageView2D * view2d = static_cast<vtkImageView2D *>(currentView->getView2D());
-    listOfPair_CurveSlice * listAxial = getAxialListOfCurves();
-    listOfPair_CurveSlice * listSagittal = getSagittalListOfCurves();
-    listOfPair_CurveSlice * listCoronal = getCoronalListOfCurves();
-    QList<QPair<vtkPolyData *,PlaneIndexSlicePair> > list1 = QList<QPair<vtkPolyData *,PlaneIndexSlicePair> >();
     
-    int currentOrientation = view2d->GetViewOrientation();
-    view2d->SetViewOrientation(2); // we set the view Orientation to the orientation of the next bezierCurve list to retreive the polyData with world coordinates based on the display from the orientation.
-    for (int i =0;i<listAxial->size();i++)
+    ListRois list = getListOfView(currentView);
+
+    QList<QPair<vtkPolyData *,PlaneIndexSlicePair> > listPolyData = QList<QPair<vtkPolyData *,PlaneIndexSlicePair> >();
+    
+    int orientation = view2d->GetViewOrientation();
+    
+    for(int i=0;i<list->size();i++)
     {
-        vtkContourRepresentation * contourRep = listAxial->at(i).first->GetContourRepresentation();
-        
-        list1.append(QPair<vtkPolyData*,PlaneIndexSlicePair>(contourRep->GetContourRepresentationAsPolyData(),listAxial->at(i).second));
+        bezierPolygonRoi * polyRoi = dynamic_cast<bezierPolygonRoi*>(list->at(i));
+        vtkContourWidget * contour =  polyRoi->getContour();
+        unsigned int orientationOfRoi = polyRoi->getOrientation();
+        unsigned int idSlice = polyRoi->getIdSlice();
+        unsigned char planeIndex = viewsPlaneIndex.value(currentView)->at(orientationOfRoi);
+        vtkContourRepresentation * contourRep = contour->GetContourRepresentation();
+        view2d->SetViewOrientation(orientationOfRoi); // we set the view Orientation to the orientation of the ROI, to retreive the polyData with world coordinates based on the display from the orientation.
+        listPolyData.append(QPair<vtkPolyData*,PlaneIndexSlicePair>(contourRep->GetContourRepresentationAsPolyData(),PlaneIndexSlicePair(idSlice,planeIndex)));
     }
-    view2d->SetViewOrientation(0);
-    for (int i =0;i<listSagittal->size();i++)
-    {
-        
-        vtkContourRepresentation * contourRep = listSagittal->at(i).first->GetContourRepresentation();
-        list1.append(QPair<vtkPolyData*,PlaneIndexSlicePair>(contourRep->GetContourRepresentationAsPolyData(),listSagittal->at(i).second));
-    }
-    view2d->SetViewOrientation(1);
-    for (int i =0;i<listCoronal->size();i++)
-    {
-        vtkContourRepresentation * contourRep = listCoronal->at(i).first->GetContourRepresentation();
-        list1.append(QPair<vtkPolyData*,PlaneIndexSlicePair>(contourRep->GetContourRepresentationAsPolyData(),listCoronal->at(i).second));
-    }
-    view2d->SetViewOrientation(currentOrientation);
-    QList<QPair<vtkPolygon*,PlaneIndexSlicePair> > list2 = createImagePolygons(list1);
-    binaryImageFromPolygon(list2);
+    view2d->SetViewOrientation(orientation);
+    
+    QList<QPair<vtkPolygon*,PlaneIndexSlicePair> > listPolygon = createImagePolygons(listPolyData);
+    binaryImageFromPolygon(listPolygon);
 }
 
 
@@ -1049,7 +1055,7 @@ void bezierCurveToolBox::binaryImageFromPolygon(QList<QPair<vtkPolygon*,PlaneInd
                 pointTest[y]=j;
                 pointTest[z]=polys[k].second.first;
 
-                int val =PointInPolygon(pointTest,polys[k].first->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polys[k].first->GetPoints()->GetData()->GetVoidPointer(0)),
+                int val =vtkPolygon::PointInPolygon(pointTest,polys[k].first->GetPoints()->GetNumberOfPoints(),static_cast<double*>(polys[k].first->GetPoints()->GetData()->GetVoidPointer(0)),
                     bounds,n);
 
                 if (val)
@@ -1206,7 +1212,7 @@ int bezierCurveToolBox::computePlaneIndex()
     return planeIndex;
 }
 
-
+/*
 #define VTK_POLYGON_CERTAIN 1
 #define VTK_POLYGON_UNCERTAIN 0
 #define VTK_POLYGON_RAY_TOL 1.e-03 //Tolerance for ray firing
@@ -1398,4 +1404,5 @@ int bezierCurveToolBox::PointInPolygon (double x[3], int numPts, double *pts,
     {
     return VTK_POLYGON_INSIDE;
     }
-}
+}*/
+

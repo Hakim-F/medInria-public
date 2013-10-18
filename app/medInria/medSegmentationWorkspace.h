@@ -57,7 +57,9 @@ public:
     //!
     medProgressionStack * progressionStack();
 
-    medSegmentationSelectorToolBox * segmentationToobox();
+    medSegmentationSelectorToolBox * segmentationToolBox();
+
+    //medRoiManagementToolBox * roiManagementToolBox();
 
     void buildWorkspace(  );
 

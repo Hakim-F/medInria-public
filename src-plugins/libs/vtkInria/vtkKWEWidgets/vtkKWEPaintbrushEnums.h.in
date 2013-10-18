@@ -1,0 +1,73 @@
+//=============================================================================
+//   This file is part of VTKEdge. See vtkedge.org for more information.
+//
+//   Copyright (c) 2010 Kitware, Inc.
+//
+//   VTKEdge may be used under the terms of the BSD License
+//   Please see the file Copyright.txt in the root directory of
+//   VTKEdge for further information.
+//
+//   Alternatively, you may see: 
+//
+//   http://www.vtkedge.org/vtkedge/project/license.html
+//
+//
+//   For custom extensions, consulting services, or training for
+//   this or any other Kitware supported open source project, please
+//   contact Kitware at sales@kitware.com.
+//
+//
+//=============================================================================
+
+#ifndef __vtkKWEPaintbrushEnums_h
+#define __vtkKWEPaintbrushEnums_h
+
+#include "vtkKWEWidgetsExport.h"
+#include "vtkSetGet.h"
+
+// .NAME vtkKWEPaintbrushEnums - Defines enums used throughout these classes.
+// .SECTION Description
+// This file is included by all the paintbrush classes and defines a few
+// enumerations.
+class VTKEdge_WIDGETS_EXPORT vtkKWEPaintbrushEnums
+{
+public:
+  // Description:
+  // - A binary brush creates black and white drawings
+  // - A Grayscale brush creates a gaussian profile (actually a ramp) like drawing.
+  // - A label brush creates a label map, each stroke can represent any one label.
+  //
+  // The brush you choose depends on what your intent is.
+  // - If your drawing has just one segmentation (one label), you are better
+  //   off using a binary brush. You will be editing with voxel precision.
+  // - If you wish to render your segmentation as contours and be able to edit
+  //   with sub-voxel precision, use the grayscale brush.
+  // - If your drawing has several segmentations, you would be better off using
+  //   a Label brush. You will be editing with voxel precision. Note that you
+  //   can still edit multiple segmentations with several binary brushes, but
+  //   its in the interest of memory not to do so.
+  //
+  typedef enum { Binary = 0, Grayscale, Label } DataType;
+
+  // Description:
+  // Are we drawing in erase or draw mode ?
+  typedef enum { Erase = 0, Draw }       BrushType;
+
+  // Description:
+  // Paintbrush standard operation add, subtract, replace ?
+  typedef enum { Add = 0, Subtract, Replace }   OperationType;
+
+  // Description:
+  // Datatype used to represent labels. This will affect memory consumption.
+  // It will also determine the maximum number of labels in your label-map.
+  //    Users can change the precision of labels used in this library by
+  // changing the two lines below.
+  //
+  typedef @VTKEdge_PAINTBRUSH_LABEL_TYPEDEF@ LabelType;
+  static int GetLabelType()
+    {
+      return @VTKEdge_PAINTBRUSH_LABEL_TYPE@;
+    }
+};
+
+#endif
