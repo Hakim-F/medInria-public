@@ -42,6 +42,8 @@
 #include "vtkInformationExecutivePortVectorKey.h"
 #include "vtkAlgorithmOutput.h"
 #include "vtkExecutive.h"
+#include <vtkImageActorPointPlacer.h>
+#include <vtkFocalPlanePointPlacer.cxx>
 
 vtkCxxRevisionMacro(vtkKWEPaintbrushRepresentation2D, "1.12");
 vtkStandardNewMacro(vtkKWEPaintbrushRepresentation2D);
@@ -104,6 +106,7 @@ vtkKWEPaintbrushRepresentation2D::vtkKWEPaintbrushRepresentation2D()
 
   vtkKWEVoxelAlignedImageActorPointPlacer * v
     = vtkKWEVoxelAlignedImageActorPointPlacer::New();
+  v->setRenderer(this->Renderer);
   this->SetShapePlacer(v);
   v->Delete();
 
@@ -154,8 +157,9 @@ void vtkKWEPaintbrushRepresentation2D::SetImageActor( vtkImageActor * imageActor
     if (this->ImageActor)
       {
       // Set the actor as the placer's actor, if it is an ImageActorPointPlacer.
-      vtkImageActorPointPlacer * imageActorPointPlacer =
-        vtkImageActorPointPlacer::SafeDownCast(this->ShapePlacer);
+      vtkInriaImageActorPointPlacer * imageActorPointPlacer =
+        vtkInriaImageActorPointPlacer::SafeDownCast(this->ShapePlacer);
+      imageActorPointPlacer->setRenderer(this->Renderer);
       if (imageActorPointPlacer)
         {
         imageActorPointPlacer->SetImageActor(this->ImageActor);
@@ -244,6 +248,7 @@ void vtkKWEPaintbrushRepresentation2D::CreateShapeOutline( double *pos )
   // Rebuild the template outline.
 
   double viewPlaneNormal[3];
+  dynamic_cast<vtkInriaImageActorPointPlacer*>(this->ShapePlacer)->setRenderer(this->Renderer);
   this->Renderer->GetActiveCamera()->GetViewPlaneNormal(viewPlaneNormal);
   vtkPlane *plane = vtkPlane::New();
   plane->SetNormal(viewPlaneNormal);

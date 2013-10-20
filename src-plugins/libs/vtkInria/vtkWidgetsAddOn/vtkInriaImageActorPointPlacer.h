@@ -117,6 +117,8 @@ public:
   // Set the world tolerance. This propagates it to the internal 
   // BoundedPlanePointPlacer.
   virtual void SetWorldTolerance( double s );
+
+  void setRenderer(vtkRenderer * ren);
     
 protected:
   vtkInriaImageActorPointPlacer();

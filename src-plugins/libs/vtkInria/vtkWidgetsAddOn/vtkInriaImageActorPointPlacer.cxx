@@ -19,6 +19,7 @@
 #include "vtkRenderer.h"
 #include "vtkImageActor.h"
 #include "vtkImageData.h"
+#include <vtkCamera.h>
 
 vtkStandardNewMacro(vtkInriaImageActorPointPlacer);
 
@@ -37,6 +38,7 @@ vtkInriaImageActorPointPlacer::vtkInriaImageActorPointPlacer()
   this->SavedBounds[5] = 0.0;
   this->Bounds[0] = this->Bounds[2] = this->Bounds[4] = VTK_DOUBLE_MAX;
   this->Bounds[1] = this->Bounds[3] = this->Bounds[5] = VTK_DOUBLE_MIN;
+  
 }
 
 //----------------------------------------------------------------------
@@ -154,6 +156,7 @@ int vtkInriaImageActorPointPlacer::UpdateInternalState()
 
   int axis;
   double position;
+  
   if ( displayExtent[0] == displayExtent[1] )
     {
     axis = vtkBoundedPlanePointPlacer::XAxis;
@@ -174,6 +177,19 @@ int vtkInriaImageActorPointPlacer::UpdateInternalState()
     vtkErrorMacro("Incorrect display extent in Image Actor");
     return 0;
     }
+  double normal[3];
+  if (this->ren)
+  {
+      this->ren->GetActiveCamera()->GetViewPlaneNormal(normal);
+      if (!((normal[0] == 0 && normal[1] == 0 && normal[2] == 1) || 
+          (normal[0] == 1 && normal[1] == 0 && normal[2] == 0) || 
+          (normal[0] == 0 && normal[1] == 1 && normal[2] == 0) ||
+          (normal[0] == 0 && normal[1] == -1 && normal[2] == 0) ||
+          (normal[0] == 0 && normal[1] == 0 && normal[2] == -1) ||
+          (normal[0] == -1 && normal[1] == 0 && normal[2] == 0) )) 
+          axis = vtkBoundedPlanePointPlacer::Oblique;
+  }
+  
 
   if ( axis != this->Placer->GetProjectionNormal() ||
        position != this->Placer->GetProjectionPosition() ||
@@ -242,6 +258,27 @@ int vtkInriaImageActorPointPlacer::UpdateInternalState()
       this->Placer->AddBoundingPlane( plane );
       plane->Delete();
       }
+
+    if (this->ren)
+        if ( axis != vtkBoundedPlanePointPlacer::Oblique)
+        {
+          plane = vtkPlane::New();
+          plane->SetOrigin( bounds[0], bounds[2], bounds[4] );
+          plane->SetNormal(this->ren->GetActiveCamera()->GetViewPlaneNormal());
+          this->Placer->AddBoundingPlane( plane );
+          plane->Delete();
+      
+          plane = vtkPlane::New();
+          plane->SetOrigin( bounds[1], bounds[3], bounds[5] );
+          double normal2[3];
+          this->ren->GetActiveCamera()->GetViewPlaneNormal(normal2);
+          normal2[0] = -normal2[0];
+          normal2[1] = -normal2[1];
+          normal2[2] = -normal2[2];
+          plane->SetNormal(normal2);
+          this->Placer->AddBoundingPlane( plane );
+          plane->Delete();
+        }
     
     this->Modified();
     }     
@@ -286,3 +323,7 @@ void vtkInriaImageActorPointPlacer::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Image Actor: " << this->ImageActor << "\n";
 }
 
+void vtkInriaImageActorPointPlacer::setRenderer(vtkRenderer *ren)
+{
+    this->ren = ren;
+}

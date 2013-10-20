@@ -63,10 +63,10 @@ public:
   //    Users can change the precision of labels used in this library by
   // changing the two lines below.
   //
-  typedef unsigned char LabelType;
+  typedef unsigned short LabelType;
   static int GetLabelType()
     {
-      return VTK_UNSIGNED_CHAR;
+      return VTK_UNSIGNED_SHORT;
     }
 };
 
