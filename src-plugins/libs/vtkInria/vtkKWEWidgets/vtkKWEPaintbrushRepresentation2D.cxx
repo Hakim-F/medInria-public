@@ -106,7 +106,6 @@ vtkKWEPaintbrushRepresentation2D::vtkKWEPaintbrushRepresentation2D()
 
   vtkKWEVoxelAlignedImageActorPointPlacer * v
     = vtkKWEVoxelAlignedImageActorPointPlacer::New();
-  v->setRenderer(this->Renderer);
   this->SetShapePlacer(v);
   v->Delete();
 
@@ -159,7 +158,6 @@ void vtkKWEPaintbrushRepresentation2D::SetImageActor( vtkImageActor * imageActor
       // Set the actor as the placer's actor, if it is an ImageActorPointPlacer.
       vtkInriaImageActorPointPlacer * imageActorPointPlacer =
         vtkInriaImageActorPointPlacer::SafeDownCast(this->ShapePlacer);
-      imageActorPointPlacer->setRenderer(this->Renderer);
       if (imageActorPointPlacer)
         {
         imageActorPointPlacer->SetImageActor(this->ImageActor);
@@ -248,7 +246,6 @@ void vtkKWEPaintbrushRepresentation2D::CreateShapeOutline( double *pos )
   // Rebuild the template outline.
 
   double viewPlaneNormal[3];
-  dynamic_cast<vtkInriaImageActorPointPlacer*>(this->ShapePlacer)->setRenderer(this->Renderer);
   this->Renderer->GetActiveCamera()->GetViewPlaneNormal(viewPlaneNormal);
   vtkPlane *plane = vtkPlane::New();
   plane->SetNormal(viewPlaneNormal);
@@ -403,6 +400,7 @@ int vtkKWEPaintbrushRepresentation2D::ActivateShapeOutline( int x, int y )
   displayPos[1] = y;
 
   // Compute world pos from the display pos.
+  dynamic_cast<vtkInriaImageActorPointPlacer*>(this->ShapePlacer)->setRenderer(this->Renderer);
   if ( !this->ShapePlacer->ComputeWorldPosition( this->Renderer,
                                                  displayPos, worldPos,
                                                  worldOrient) )
