@@ -1246,6 +1246,16 @@ void v3dView::onOrientationPropertySet ( const QString &value )
     }
 }
 
+void * v3dView::getView2D()
+{
+    return d->view2d;
+}
+
+void * v3dView::getRenderWindow()
+{
+    return d->renWin;
+}
+
 void v3dView::on3DModePropertySet ( const QString &value )
 {
     if ( value=="VR" )

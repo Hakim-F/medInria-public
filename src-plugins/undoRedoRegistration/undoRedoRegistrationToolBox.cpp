@@ -22,6 +22,14 @@
 #include <medRegistrationSelectorToolBox.h>
 #include <registrationFactory/registrationFactory.h>
 
+#include <vtkGlyph3D.h>
+#include <vtkGlyph2D.h>
+#include <vtkArrowSource.h>
+#include <vtkImageView2D.h>
+#include <vtkImageData.h>
+#include <vtkRenderer.h>
+#include <vtkActor.h>
+#include <vtkPolyDataMapper.h>
 
 class undoRedoRegistrationToolBoxPrivate
 {
@@ -39,6 +47,9 @@ public:
     QPushButton * loadButton;
     QPushButton * warpButton;
     itk::ImageBase<3>::Pointer warpedImage;
+    
+    // Arrow Field Visualization
+    QPushButton * glyph;
 };
 
 undoRedoRegistrationToolBox::undoRedoRegistrationToolBox(QWidget *parent) : medRegistrationAbstractToolBox(parent), d(new undoRedoRegistrationToolBoxPrivate)
@@ -97,6 +108,11 @@ undoRedoRegistrationToolBox::undoRedoRegistrationToolBox(QWidget *parent) : medR
     connect(d->saveButton,SIGNAL(clicked()),this,SLOT(save()));
     connect(d->loadButton,SIGNAL(clicked()),this,SLOT(load()));
     connect(d->warpButton,SIGNAL(clicked()),SLOT(warpGrid()));
+
+    // Glyph Visualization
+    d->glyph = new QPushButton("Glyph",this);
+    connect(d->glyph,SIGNAL(clicked()),this,SLOT(arrowGlyphVisu()));
+
 
     QHBoxLayout *layoutButtonWarp = new QHBoxLayout;
     layoutButtonWarp->addWidget(d->loadButton);
@@ -261,4 +277,27 @@ void undoRedoRegistrationToolBox::warpGrid()
         output->setData(d->warpedImage);
         this->parentToolBox()->visualizeDisplacementField(output);
     }
+}
+
+void undoRedoRegistrationToolBox::arrowGlyphVisu()
+{
+    vtkGlyph3D * glyph = vtkGlyph3D::New();
+    vtkGlyph2D * glyph2d = vtkGlyph2D::New();
+    vtkArrowSource * arrow = vtkArrowSource::New();
+    arrow->Update();
+    medAbstractView * view = dynamic_cast<medAbstractView*>(this->parentToolBox()->fixedView());
+    vtkImageView2D * view2d = static_cast<vtkImageView2D*>(view->getView2D());
+    glyph2d->SetInputConnection(view2d->GetInput()->GetProducerPort());
+    glyph2d->OrientOn();
+    glyph2d->SetSource(arrow->GetOutput());
+    glyph2d->SetScaleModeToScaleByVector();
+    glyph2d->Update();
+
+    vtkPolyDataMapper * vectorMapper = vtkPolyDataMapper::New();
+    vectorMapper->SetInputConnection(glyph2d->GetOutputPort());
+    vtkActor * actor = vtkActor::New();
+    actor->SetMapper(vectorMapper);
+
+    view2d->GetRenderer()->AddViewProp(actor);
+    view2d->GetRenderer()->ResetCamera();
 }

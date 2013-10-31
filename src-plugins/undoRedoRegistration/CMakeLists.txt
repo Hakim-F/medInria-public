@@ -44,6 +44,9 @@ endif(ITK_FOUND)
 find_package(RPI REQUIRED)
 include(${RPI_USE_FILE})
 
+find_package(VTK REQUIRED)
+include(${VTK_USE_FILE})
+
 ## #################################################################
 ## Input
 ## #################################################################
@@ -83,6 +86,7 @@ target_link_libraries(${PROJECT_NAME}
   itkProcessRegistration
   RegistrationAddOn
   registrationFactory
+  vtkImageView
 )
 
 ## #################################################################

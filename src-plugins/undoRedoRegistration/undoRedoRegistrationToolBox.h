@@ -37,6 +37,7 @@ public slots:
     //void load(const char*);
     void save(const char*);
     void warpGrid();
+    void arrowGlyphVisu();
 
 private:
     undoRedoRegistrationToolBoxPrivate *d;
