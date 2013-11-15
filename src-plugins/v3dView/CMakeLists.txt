@@ -100,6 +100,7 @@ set(${PROJECT_NAME}_HEADERS_MOC
   medTimeLineToolBox.h
   ${${PROJECT_NAME}_TTK_DEPENDENT_HEADERS_MOC}
   v3dViewSHInteractor.h
+  meshModify.h
   medSHViewToolBox.h
   )
 
@@ -126,6 +127,7 @@ set(${PROJECT_NAME}_SOURCES
   v3dViewSHInteractor.cpp
   medSHViewToolBox.cpp
   ${${PROJECT_NAME}_TTK_DEPENDENT_SOURCES}
+  meshModify.cpp
   )
 
 

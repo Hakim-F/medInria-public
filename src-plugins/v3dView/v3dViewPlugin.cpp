@@ -29,6 +29,8 @@
 #include <v3dViewSHInteractor.h>
 #endif
 
+#include <meshModify.h>
+
 #include <dtkLog/dtkLog.h>
 
 // /////////////////////////////////////////////////////////////////
@@ -73,10 +75,18 @@ bool v3dViewPlugin::initialize()
     if (!v3dViewTensorInteractor::registered())     { dtkWarn() << "Unable to register v3dViewTensorInteractor type";     }
 #endif
 
+    if (!v3dViewFuseInteractor::registered())       { dtkWarn() << "Unable to register v3dViewFuseInteractor type";       }
     if (!v3dViewMeshInteractor::registered())       { dtkWarn() << "Unable to register v3dViewMeshInteractor type";       }
     if (!v3dView4DInteractor::registered())         { dtkWarn() << "Unable to register v3dView4DInteractor type";         }
-    if (!v3dViewSHInteractor::registered())         { dtkWarn() << "Unable to register v3dViewSHInteractor type";         }
     if (!v3dViewAnnotationInteractor::registered()) { dtkWarn() << "Unable to register v3dViewAnnotationInteractor type"; }
+
+#ifndef DISABLE_TTK_DEPENDENT_CODE
+    if (!v3dViewTensorInteractor::registered())     { dtkWarn() << "Unable to register v3dViewTensorInteractor type";     }
+#endif
+    
+    if (!v3dViewSHInteractor::registered())         { dtkWarn() << "Unable to register v3dViewSHInteractor type"; }
+    if (!v3dViewAnnotationInteractor::registered()) { dtkWarn() << "Unable to register v3dViewAnnotationInteractor type"; }
+    if (!meshModifyToolBox::registered())         { dtkWarn() << "Unable to register meshModifyToolBox type"; }
 
     return true;
 }

@@ -19,11 +19,14 @@
 #include <medSettingsManager.h>
 #include <medToolBoxFactory.h>
 
+#include <medToolBoxFactory.h>
+
 class medVisualizationWorkspacePrivate
 {
 public:
     medVisualizationLayoutToolBox * layoutToolBox;
 
+    medToolBox * meshModTB;
 };
 
 medVisualizationWorkspace::medVisualizationWorkspace(QWidget *parent) : medWorkspace(parent), d(new medVisualizationWorkspacePrivate)
@@ -46,12 +49,13 @@ medVisualizationWorkspace::medVisualizationWorkspace(QWidget *parent) : medWorks
     QList<QString> toolboxNames = medToolBoxFactory::instance()->toolBoxesFromCategory("view");
     if(toolboxNames.contains("medViewPropertiesToolBox"))
     {
-        // we want the medViewPropertiesToolBox to be the first "view" toolbox
+    d->meshModTB = medToolBoxFactory::instance()->createToolBox("meshModifyToolbox");
         toolboxNames.move(toolboxNames.indexOf("medViewPropertiesToolBox"),0);
     }
     foreach(QString toolbox, toolboxNames)
     {
        addToolBox( medToolBoxFactory::instance()->createToolBox(toolbox, parent) );
+    this->addToolBox( d->meshModTB );
     }
 
     connect ( this, SIGNAL(layoutModeChanged(const QString &)),
