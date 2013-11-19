@@ -126,8 +126,8 @@ set(${PROJECT_NAME}_SOURCES
   annotations/vtkSeedPointHandle.cpp
   v3dViewSHInteractor.cpp
   medSHViewToolBox.cpp
-  ${${PROJECT_NAME}_TTK_DEPENDENT_SOURCES}
   meshModify.cpp
+  ${${PROJECT_NAME}_TTK_DEPENDENT_SOURCES}
   )
 
 
