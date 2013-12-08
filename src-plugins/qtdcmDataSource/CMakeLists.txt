@@ -41,6 +41,8 @@ find_package(dtk REQUIRED)
 include(${dtk_USE_FILE})
 include(dtkPlugin)
 
+find_package(DCMTK REQUIRED)
+
 find_package(QtDCM REQUIRED)
 if (QTDCM_FOUND)
   include(${QTDCM_USE_FILE})
@@ -83,6 +85,7 @@ add_library(${PROJECT_NAME} SHARED
   ${${PROJECT_NAME}_SOURCES}
   ${${PROJECT_NAME}_HEADERS})
 
+  
 if (WIN32)
   target_link_libraries(${PROJECT_NAME}
   ${QT_LIBRARIES}
