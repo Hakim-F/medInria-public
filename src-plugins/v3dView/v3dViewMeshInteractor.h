@@ -84,6 +84,8 @@ public slots:
     virtual void setVisible(dtkAbstractData * data, bool visible);
     virtual bool isVisible(dtkAbstractData * data) const;
 
+    void changeSizePoints(double size);
+
 protected:
     void updatePipeline (unsigned int meshLayer = 0);
     void changeBounds ( vtkPointSet* pointSet);

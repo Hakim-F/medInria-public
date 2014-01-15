@@ -408,6 +408,13 @@ bool v3dViewMeshInteractor::isVisible(dtkAbstractData * /*data*/) const
     return true;
 }
 
+void v3dViewMeshInteractor::changeSizePoints(double size)
+{
+    for(int i=0;i<d->actorPropertyList.size();i++)
+        d->actorPropertyList[i]->SetPointSize(size);
+    d->view->update();
+}
+
 // ---------------------------------------------------------------------------
 
 
@@ -427,7 +434,6 @@ void v3dViewMeshInteractor::updatePipeline (unsigned int meshLayer)
     }
     d->view->view3d()->ResetCamera();
 }
-
 
 void v3dViewMeshInteractor::changeBounds (vtkPointSet* pointSet)
 {
