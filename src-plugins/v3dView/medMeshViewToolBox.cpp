@@ -49,19 +49,30 @@ class MouseInteractorStylePP : public vtkInteractorStyleTrackballCamera2
     vtkTypeMacro(MouseInteractorStylePP, vtkInteractorStyleTrackballCamera2);
  
     virtual void OnLeftButtonDown() 
-    {
-      std::cout << "Picking pixel: " << this->Interactor->GetEventPosition()[0] << " " << this->Interactor->GetEventPosition()[1] << std::endl;
-      this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0], 
-                         this->Interactor->GetEventPosition()[1], 
-                         0,  // always zero.
-                         this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-      double picked[3];
-      this->Interactor->GetPicker()->GetPickPosition(picked);
-      std::cout << "Picked value: " << picked[0] << " " << picked[1] << " " << picked[2] << std::endl;
-      // Forward events
+    { 
+        if (this->Interactor->GetShiftKey() )
+        {
+
+            QString text1("Picking pixel: " + QString::number(this->Interactor->GetEventPosition()[0]) + " " + QString::number(this->Interactor->GetEventPosition()[1]));
+            this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0], 
+                this->Interactor->GetEventPosition()[1], 
+                0,  // always zero.
+                this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+            double picked[3];
+            this->Interactor->GetPicker()->GetPickPosition(picked);
+            QString text2("Picked value: " + QString::number(picked[0]) + " " + QString::number(picked[1]) + " " + QString::number(picked[2]));
+            tb->setPointPicked(picked);
+            /*tb->setCoordsOfVertice(text2);*/
+            // Forward events
+        }
       vtkInteractorStyleTrackballCamera2::OnLeftButtonDown();
     }
- 
+
+    void setToolBox(medMeshViewToolBox * tb){this->tb = tb;}
+
+private: 
+    medMeshViewToolBox * tb;
+
 };
 
 vtkStandardNewMacro(MouseInteractorStylePP);
@@ -74,6 +85,7 @@ public:
     dtkSmartPointer<dtkAbstractData> data;
     vtkSmartPointer<vtkPointPicker> pointPicker;
 
+    double pointPicked[3];
     QDoubleSpinBox * sizeOfPoints;
     QCheckBox * followPickedPoints;
     QLabel * coordsOfVertice;
@@ -147,26 +159,19 @@ void medMeshViewToolBox::update(dtkAbstractView *view)
     }
 
     d->view = qobject_cast<v3dView*>(view);
+    connect(d->view, SIGNAL(propertySet(QString,QString)), this, SLOT(reSetInteractorStyle(QString,QString)),Qt::UniqueConnection);
 
     d->view->interactor()->SetPicker(d->pointPicker);
-    vtkSmartPointer<MouseInteractorStylePP> style = vtkSmartPointer<MouseInteractorStylePP>::New();
-    d->view->view2d()->GetInteractor()->SetInteractorStyle( style );
-    //d->view->view3d()->GetInteractor()->SetInteractorStyle( style );
+    if (d->view->property("Orientation")=="3D")
+    {   
+        vtkSmartPointer<MouseInteractorStylePP> style = vtkSmartPointer<MouseInteractorStylePP>::New();
+        d->view->view3d()->GetInteractor()->SetInteractorStyle( style );
+        style->setToolBox(this);
+    }
 
     if (d->interactor) {
         connect(d->sizeOfPoints,SIGNAL(valueChanged(double)),d->interactor,SLOT(changeSizePoints(double)));
-        /*connect (this, SIGNAL(fiberSelectionValidated(const QString&, const QColor&)),
-                 d->interactor, SLOT(validateSelection(const QString&, const QColor&)));
-        connect (this, SIGNAL(fiberSelectionTagged()),
-                 d->interactor, SLOT(tagSelection()));
-        connect (this, SIGNAL(fiberSelectionReset()),
-                 d->interactor, SLOT(resetSelection()));
 
-        d->bundleBoxCheckBox->blockSignals (true);
-        d->bundleBoxCheckBox->setChecked(d->interactor->property("BoxVisibility")=="true" );
-        d->bundleBoxCheckBox->blockSignals (false);
-
-        this->setData (d->interactor->data());*/
         if (d->interactor->enabled())
             this->show();
 
@@ -175,10 +180,33 @@ void medMeshViewToolBox::update(dtkAbstractView *view)
     
 }
 
-//TODO : watch changemenet dorientation ou passage en 3d pour reactiver le bon style. pas la peine de le mettre en 2d on voit pas les pts.
-
 void medMeshViewToolBox::setInput(dtkAbstractData *data)
 {
     this->setData(data);
+}
+
+void medMeshViewToolBox::reSetInteractorStyle(QString key, QString value)
+{
+    if (key != "Orientation")
+        return;
+    
+    if (value=="3D")
+    {
+        vtkSmartPointer<MouseInteractorStylePP> style = vtkSmartPointer<MouseInteractorStylePP>::New();
+        d->view->view3d()->GetInteractor()->SetInteractorStyle( style );
+        style->setToolBox(this);
+    }
+}
+
+void medMeshViewToolBox::setPointPicked(double * point)
+{
+    d->pointPicked[0] = point[0];
+    d->pointPicked[1] = point[1];
+    d->pointPicked[2] = point[2];
+    int indices[3];
+    d->view->view2d()->GetImageCoordinatesFromWorldCoordinates(d->pointPicked,indices);
+    QString text("Picked point: " + QString::number(indices[0]+1) + " " + QString::number(indices[1]+1) + " " + QString::number(indices[2]+1));
+    d->coordsOfVertice->setText(text);
+    d->view->view3d()->SetCurrentPoint(d->pointPicked);
 }
 
