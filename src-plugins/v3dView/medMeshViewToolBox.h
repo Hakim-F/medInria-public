@@ -41,6 +41,8 @@ public:
       */
     virtual void setData(dtkAbstractData *data);
 
+    void setPointPicked(double * point);
+
 signals:
     /**
       * This signal is emitted when the user has picked a point.
@@ -50,6 +52,7 @@ signals:
 public slots:
 
     void setInput(dtkAbstractData * data);
+    void reSetInteractorStyle(QString key, QString value);
 
 protected slots:
 
