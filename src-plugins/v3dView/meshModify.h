@@ -16,12 +16,18 @@
 #include <medToolBox.h>
 #include <v3dView.h>
 #include <v3dViewPluginExport.h>
-
+#include <v3dViewMeshInteractor.h>
 #include <vtkSmartPointer.h>
+#include <vtkPointPicker.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkInteractorStyleTrackballCamera2.h>
+#include <vtkRendererCollection.h>
 
 class vtkBoxWidget;
 class vtkMyCallback;
 class vtkMetaDataSet;
+class MouseInteractorStylePP;
 
 class V3DVIEWPLUGIN_EXPORT meshModifyToolBox : public medToolBox
 {
@@ -36,6 +42,8 @@ public:
     
     static bool registered();
 
+    void setPointPicked(double * point);
+
 public slots:
 
     void toggleWidget();
@@ -44,6 +52,8 @@ public slots:
 
     void exportTransform();
     void importTransform();
+
+    void reSetInteractorStyle(QString key, QString value);
 
 private:
     v3dView * _view;
@@ -56,7 +66,49 @@ private:
     vtkSmartPointer<vtkMyCallback> _callback;
     vtkMetaDataSet * _dataset;
     bool _modifying;
+
+    v3dViewMeshInteractor * _interactor;
+    vtkSmartPointer<vtkPointPicker> _pointPicker;
+    QDoubleSpinBox * _sizeOfPoints;
+    QLabel * _coordsOfPoint;
+    double _pointPicked[3];
+    vtkSmartPointer<MouseInteractorStylePP> _style;
 };
+
+// Define interaction style
+class MouseInteractorStylePP : public vtkInteractorStyleTrackballCamera2
+{
+  public:
+    static MouseInteractorStylePP* New();
+    vtkTypeMacro(MouseInteractorStylePP, vtkInteractorStyleTrackballCamera2);
+ 
+    virtual void OnLeftButtonDown() 
+    { 
+        if (this->Interactor->GetShiftKey() )
+        {
+
+            QString text1("Picking pixel: " + QString::number(this->Interactor->GetEventPosition()[0]) + " " + QString::number(this->Interactor->GetEventPosition()[1]));
+            this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0], 
+                this->Interactor->GetEventPosition()[1], 
+                0,  // always zero.
+                this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+            double picked[3];
+            this->Interactor->GetPicker()->GetPickPosition(picked);
+            QString text2("Picked value: " + QString::number(picked[0]) + " " + QString::number(picked[1]) + " " + QString::number(picked[2]));
+            tb->setPointPicked(picked);
+            /*tb->setCoordsOfVertice(text2);*/
+            // Forward events
+        }
+      vtkInteractorStyleTrackballCamera2::OnLeftButtonDown();
+    };
+
+    void setToolBox(meshModifyToolBox * tb){this->tb = tb;};
+
+private: 
+    meshModifyToolBox * tb;
+
+};
+
 
 
 

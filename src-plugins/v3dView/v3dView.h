@@ -154,6 +154,8 @@ public:
 
     virtual medViewBackend * backend() const;
 
+    v3dViewObserver * observer();
+
 public slots:
     // inherited from medAbstractView
     void onPositionChanged  (const  QVector3D &position);

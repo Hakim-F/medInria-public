@@ -589,7 +589,7 @@ v3dView::v3dView() : medAbstractView(), d ( new v3dViewPrivate )
     d->view2d->AddObserver ( vtkImageView2DCommand::CameraPanEvent, d->observer, 0);
     d->view2d->AddObserver ( vtkImageView2DCommand::CameraZoomEvent,d->observer,0);
     d->view3d->GetInteractorStyle()->AddObserver ( vtkCommand::InteractionEvent, d->observer, 0 );
-
+    
     d->view2d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::KeyPressEvent,d->observer,0);
     d->view2d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::KeyReleaseEvent,d->observer,0);
 
@@ -835,6 +835,11 @@ vtkRenderer *v3dView::renderer2d()
 vtkRenderer *v3dView::renderer3d()
 {
     return d->renderer3d;
+}
+
+v3dViewObserver *v3dView::observer()
+{
+    return d->observer;
 }
 
 void v3dView::setSharedDataPointer ( dtkSmartPointer<dtkAbstractData> data )

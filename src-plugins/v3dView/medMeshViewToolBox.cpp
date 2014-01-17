@@ -66,9 +66,9 @@ class MouseInteractorStylePP : public vtkInteractorStyleTrackballCamera2
             // Forward events
         }
       vtkInteractorStyleTrackballCamera2::OnLeftButtonDown();
-    }
+    };
 
-    void setToolBox(medMeshViewToolBox * tb){this->tb = tb;}
+    void setToolBox(medMeshViewToolBox * tb){this->tb = tb;};
 
 private: 
     medMeshViewToolBox * tb;

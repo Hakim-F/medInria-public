@@ -49,15 +49,15 @@ medVisualizationWorkspace::medVisualizationWorkspace(QWidget *parent) : medWorks
     QList<QString> toolboxNames = medToolBoxFactory::instance()->toolBoxesFromCategory("view");
     if(toolboxNames.contains("medViewPropertiesToolBox"))
     {
-    d->meshModTB = medToolBoxFactory::instance()->createToolBox("meshModifyToolbox");
+    /*d->meshModTB = medToolBoxFactory::instance()->createToolBox("meshModifyToolbox");*/
         toolboxNames.move(toolboxNames.indexOf("medViewPropertiesToolBox"),0);
     }
     foreach(QString toolbox, toolboxNames)
     {
-       addToolBox( medToolBoxFactory::instance()->createToolBox(toolbox, parent) );
-    this->addToolBox( d->meshModTB );
+        medToolBox * tb = medToolBoxFactory::instance()->createToolBox(toolbox);
+        this->addToolBox(tb);
     }
-
+    //this->addToolBox( d->meshModTB );
     connect ( this, SIGNAL(layoutModeChanged(const QString &)),
               stackedViewContainers(), SLOT(changeCurrentContainerType(const QString &)));
 }

@@ -17,7 +17,7 @@
 #include "medViewPropertiesToolBox.h"
 #include "medTimeLineToolBox.h"
 #include "medTensorViewToolBox.h"
-#include <medMeshViewToolBox.h>
+//#include <medMeshViewToolBox.h>
 #include "medFiberViewToolBox.h"
 #include "medSHViewToolBox.h"
 #include "v3dViewMeshInteractor.h"
@@ -69,7 +69,7 @@ bool v3dViewPlugin::initialize()
     if (!medTensorViewToolBox::registered())           { dtkWarn() << "Unable to register medTensorViewToolBox type"; }
     if (!medFiberViewToolBox::registered())            { dtkWarn() << "Unable to register medFiberViewToolBox type"; }
     if (!medSHViewToolBox::registered())               { dtkWarn() << "Unable to register medSHViewToolBox type"; }
-    if (!medMeshViewToolBox::registered())             { dtkWarn() << "Unable to register medMeshViewToolBox type"; }
+    //if (!medMeshViewToolBox::registered())             { dtkWarn() << "Unable to register medMeshViewToolBox type"; }
     if (!v3dView::registered())                        { dtkWarn() << "Unable to register v3dView type";                     }
 
 #ifndef DISABLE_TTK_DEPENDENT_CODE

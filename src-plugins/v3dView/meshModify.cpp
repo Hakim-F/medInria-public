@@ -34,13 +34,18 @@
 #include <vtkMetaDataSetSequence.h>
 #include <vtkTransformFilter.h>
 #include <vtkMetaSurfaceMesh.h>
+#include <vtkObjectFactory.h>
+#include <vtkImageView2D.h>
+
+
+vtkStandardNewMacro(MouseInteractorStylePP);
 
 class vtkMyCallback : public vtkCommand
 {
 public:
     static vtkMyCallback *New()
     { return new vtkMyCallback; }
-    virtual void Execute(vtkObject *caller, unsigned long, void*)
+    virtual void Execute(vtkObject *caller, unsigned long e, void*)
     {
         vtkSmartPointer<vtkTransform> t = vtkSmartPointer<vtkTransform>::New();
         vtkBoxWidget * widget = reinterpret_cast<vtkBoxWidget*>(caller);
@@ -48,7 +53,6 @@ public:
         for(unsigned int i = 0; i < _dataset->GetNumberOfActors(); i++) {
             _dataset->GetActor(i)->SetUserTransform(t);
         }
-
     }
     void setDataSet(vtkMetaDataSet * dataset) {_dataset = dataset;}
 
@@ -92,6 +96,21 @@ meshModifyToolBox::meshModifyToolBox(QWidget * parent)
     connect(_cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
     connect(_exportButton, SIGNAL(clicked()), this, SLOT(exportTransform()));
     connect(_importButton, SIGNAL(clicked()), this, SLOT(importTransform()));
+
+    _coordsOfPoint = new QLabel("",w);
+    QWidget * w2 = new QWidget();
+    QLabel *_labelSize = new QLabel("Size of points : ");
+    _sizeOfPoints = new QDoubleSpinBox(w);
+    QHBoxLayout * layoutSpinBox = new QHBoxLayout();
+    layoutSpinBox->addWidget(_labelSize);
+    layoutSpinBox->addWidget(_sizeOfPoints);
+    w2->setLayout(layoutSpinBox);
+    w->layout()->addWidget(w2);
+    w->layout()->addWidget(_coordsOfPoint);
+    _pointPicker = vtkSmartPointer<vtkPointPicker>::New();
+    _style = vtkSmartPointer<MouseInteractorStylePP>::New();
+    _style->setToolBox(this);
+
 }
 
 
@@ -129,6 +148,20 @@ void meshModifyToolBox::update(dtkAbstractView * view)
 
     _view = view3d;
     _modifyButton->setEnabled(true);
+
+    //----/-----/
+    connect(_view, SIGNAL(propertySet(QString,QString)), this, SLOT(reSetInteractorStyle(QString,QString)),Qt::UniqueConnection);
+    _view->interactor()->SetPicker(_pointPicker);
+    if (_view->property("Orientation")=="3D")
+    {   
+        _view->view3d()->GetInteractor()->SetInteractorStyle( _style );
+        if (!_view->view3d()->HasObserver(vtkImageView::CurrentPointChangedEvent))
+            _view->view3d()->AddObserver ( vtkImageView::CurrentPointChangedEvent, reinterpret_cast<vtkCommand*>(_view->observer()), 0 );
+    }
+    
+    _interactor = qobject_cast<v3dViewMeshInteractor*>(_view->dtkAbstractView::interactor("v3dViewMeshInteractor"));
+    if (_interactor)
+        connect(_sizeOfPoints,SIGNAL(valueChanged(double)),_interactor,SLOT(changeSizePoints(double)));
 }
 
 
@@ -325,3 +358,29 @@ void meshModifyToolBox::importTransform()
     _boxWidget->SetTransform(t);
     _boxWidget->InvokeEvent(vtkCommand::InteractionEvent);
 }
+
+void meshModifyToolBox::reSetInteractorStyle(QString key, QString value)
+{
+    if (key != "Orientation")
+        return;
+    
+    if (value=="3D")
+    {
+        _view->view3d()->GetInteractor()->SetInteractorStyle( _style );
+        if (!_view->view3d()->HasObserver(vtkImageView::CurrentPointChangedEvent))
+            _view->view3d()->AddObserver ( vtkImageView::CurrentPointChangedEvent, reinterpret_cast<vtkCommand*>(_view->observer()), 0 );
+    }
+}
+
+void meshModifyToolBox::setPointPicked(double * point)
+{
+    _pointPicked[0] = point[0];
+    _pointPicked[1] = point[1];
+    _pointPicked[2] = point[2];
+    int indices[3];
+    _view->view2d()->GetImageCoordinatesFromWorldCoordinates(_pointPicked,indices);
+    QString text("Picked point: " + QString::number(indices[0]+1) + " " + QString::number(indices[1]+1) + " " + QString::number(indices[2]+1));
+    _coordsOfPoint->setText(text);
+    _view->view3d()->SetCurrentPoint(_pointPicked);
+}
+

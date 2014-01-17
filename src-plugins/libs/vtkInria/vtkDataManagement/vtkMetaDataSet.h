@@ -20,6 +20,7 @@
 #include <vtkDataSet.h>
 
 //#include <vtkActor.h>
+#include "vtkDataManagementExport.h"
 
 #include <itkMetaDataObject.h>
 #include <itkMetaDataDictionary.h>
@@ -42,7 +43,7 @@ class vtkScalarsToColors;
 class vtkPolyData;
 
 
-class vtkMetaDataSet: public vtkDataObject
+class VTK_DATAMANAGEMENT_EXPORT vtkMetaDataSet: public vtkDataObject
 {
  public:
 
