@@ -54,6 +54,7 @@ public slots:
     void importTransform();
 
     void reSetInteractorStyle(QString key, QString value);
+    void moveToMPRmode(bool val);
 
 private:
     v3dView * _view;

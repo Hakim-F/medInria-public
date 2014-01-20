@@ -364,9 +364,9 @@ void meshModifyToolBox::reSetInteractorStyle(QString key, QString value)
     if (key != "Orientation")
         return;
     
-    if (value=="3D")
+    if (value=="3D" && (_view->property("Orientation")=="3D"))
     {
-        _view->view3d()->GetInteractor()->SetInteractorStyle( _style );
+       _view->view3d()->GetInteractor()->SetInteractorStyle( _style );
         if (!_view->view3d()->HasObserver(vtkImageView::CurrentPointChangedEvent))
             _view->view3d()->AddObserver ( vtkImageView::CurrentPointChangedEvent, reinterpret_cast<vtkCommand*>(_view->observer()), 0 );
     }
@@ -384,3 +384,34 @@ void meshModifyToolBox::setPointPicked(double * point)
     _view->view3d()->SetCurrentPoint(_pointPicked);
 }
 
+void meshModifyToolBox::moveToMPRmode(bool val)
+{
+    //if (!_view)
+    //    return;
+    //if (val)
+    //{
+    //    //originalView = _view;
+    //    mprMode->setText("Exit MPR Mode");
+    //    mprOn = true;
+
+    //    medCustomViewContainer * MPRContainer = new medCustomViewContainer( workspace->stackedViewContainers() );
+    //    MPRContainer->setPreset(5);
+    //    MPRContainer->setAcceptDrops(false);
+    //    
+    //    for (int i = 3;i>=0;i--)
+    //    {
+    //        medViewContainer * childContainerI = MPRContainer->childContainers()[i];
+    //        childContainerI->open(static_cast<dtkAbstractData*>(currentView->data()));
+    //        medAbstractView * viewI = qobject_cast<medAbstractView*>(childContainerI->view());
+    //        viewI->setLinkWindowing(true);
+    //        viewI->setLinkPosition(true);  
+    //        viewI->setLinkCamera(true);    
+    //        viewI->setProperty("Closable","false");
+    //    }
+    //    
+    //    workspace->stackedViewContainers()->addContainer ( "MPR MODE",MPRContainer );
+    //    workspace->setCurrentViewContainer ( "MPR MODE" );
+    //    workspace->stackedViewContainers()->lockTabs();
+    //    workspace->stackedViewContainers()->hideTabBar(); // increase the space
+    //}    
+}
