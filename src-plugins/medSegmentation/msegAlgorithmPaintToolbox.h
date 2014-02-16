@@ -31,6 +31,10 @@
 
 #include <vector>
 
+#include <vtkKWEWidgets/vtkKWEWidgetGroup.h>
+#include <vtkKWEWidgets/vtkKWEPaintbrushWidget.h>
+#include <vtkKWEWidgets/vtkKWEPaintbrushDrawing.h>
+
 class medAbstractData;
 class medAbstractView;
 class medAnnotationData;
@@ -159,6 +163,10 @@ private:
     unsigned int m_strokeLabel;
 
     PaintState::E m_paintState;
+
+    vtkKWEWidgetGroup *setOfWidget;
+    vtkKWEPaintbrushWidget * currentPaintWidget;
+    vtkKWEPaintbrushDrawing * drawing; 
 };
 
 } // namespace mseg
