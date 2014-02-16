@@ -192,6 +192,8 @@ void medAbstractDatabaseImporter::importFile ( void )
     QString currentSeriesUid = "-1";
     QString currentSeriesId = "";
 
+    bool atLeastOneImportSucceeded = false;
+
     foreach ( QString file, fileList )
     {
         if ( d->isCancelled ) // check if user cancelled the process
@@ -403,7 +405,14 @@ void medAbstractDatabaseImporter::importFile ( void )
 
         itPat++;
         itSer++;
+        atLeastOneImportSucceeded = true;
     } // end of the final loop
+
+    if ( ! atLeastOneImportSucceeded) {
+        emit progress ( this,100 );
+        emit failure(this);
+        return;
+    }
 
 
     // if a partial import was attempted we tell the user what to do
@@ -729,6 +738,7 @@ dtkSmartPointer<dtkAbstractDataWriter> medAbstractDatabaseImporter::getSuitableW
     // first try with the last
     for (int i=0; i<writers.size(); i++) {
         dataWriter = dtkAbstractDataFactory::instance()->writerSmartPointer(writers[i]);
+        dataWriter->setData(dtkData);
         if (d->lastSuccessfulWriterDescription==dataWriter->identifier()) {
             if (dataWriter->handled().contains(dtkData->identifier()) && dataWriter->canWrite(filename)) {
 
@@ -743,6 +753,7 @@ dtkSmartPointer<dtkAbstractDataWriter> medAbstractDatabaseImporter::getSuitableW
     for ( int i=0; i<writers.size(); i++ )
     {
         dataWriter = dtkAbstractDataFactory::instance()->writerSmartPointer ( writers[i] );
+        dataWriter->setData(dtkData);
 
         if (dataWriter->handled().contains(dtkData->identifier()) &&
              dataWriter->canWrite( filename ) ) {
