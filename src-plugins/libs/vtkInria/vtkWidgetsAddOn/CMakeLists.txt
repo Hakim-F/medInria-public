@@ -20,14 +20,7 @@ vtkOrientationAnnotation.cxx
 vtkOrientedBoxWidget.cxx
 vtkRulerWidget.cxx
 vtkInteractorStyleTrackballCamera2.cxx
-<<<<<<< HEAD
-=======
-#vtkBrushWidget.cxx
-#vtkBrushRepresentation.cxx
-vtkContourOverlayRepresentation.cxx
-vtkConstantBalloonWidget.cxx
 vtkInriaImageActorPointPlacer.cxx
->>>>>>> 6c759a7... adds a new pointplacer
 )
 
 set(${PROJECT_NAME}_LIBS
