@@ -333,50 +333,49 @@ AlgorithmPaintToolbox::~AlgorithmPaintToolbox()
 void AlgorithmPaintToolbox::onStrokePressed()
 { 
     /*--------------------------------------PLAYING WITH VTKEDGE-----------------------------------------------*/
-+    setOfWidget = vtkKWEWidgetGroup::New();
-+    currentPaintWidget = vtkKWEPaintbrushWidget::New();
-+    currentPaintWidget->SetInteractor( view2d->GetInteractor());
-+    //vtkKWEPaintbrushRepresentation2D * rep = vtkKWEPaintbrushRepresentation2D::SafeDownCast(currentPaintWidget->GetRepresentation());
-+    vtkKWEPaintbrushRepresentation2D * rep = vtkKWEPaintbrushRepresentation2D::New();
-+    currentPaintWidget->SetRepresentation(rep);
-+    if (rep)
-+      {
-+        vtkImageActor * imageActor = view2d->GetImageActor(0);
-+        vtkImageData * imageData = view2d->GetInput();
-+      rep->SetImageActor(imageActor);
-+      rep->SetImageData(imageData);
-+      rep->GetPaintbrushOperation()->GetPaintbrushShape()->SetSpacing(
-+          imageData->GetSpacing() );
-+      rep->GetPaintbrushOperation()->GetPaintbrushShape()->SetOrigin(
-+          imageData->GetOrigin() );
-+      }
-+
-+    currentPaintWidget->SetPaintbrushMode( vtkKWEPaintbrushWidget::Edit );
-+    setOfWidget->AddWidget(currentPaintWidget);
-+    vtkKWEPaintbrushDrawing * drawing = rep->GetPaintbrushDrawing();
-+    drawing->SetRepresentationToBinary();
-+    rep->SetSingleSliceThickBrush(true);
-+    
-+    //// Our internal representation will be to manage a label map.
-+    //drawing->SetRepresentationToLabel();
-+
-+    //// This will allocate our canvas based on the size of the overlay image
-+    //// that was set on the WidgetRepresentation.
-+    //drawing->InitializeData();
-+
-+    //// Clear the drawing and start on a clean slate. The drawing would have
-+    //// automatically created 1 empty sketch for us, so we can start drawing
-+    //// right away. Let's remove it, since we'd like to initialize the drawing
-+    //// with our IBSR label map.
-+    //drawing->RemoveAllItems();
-     
+    setOfWidget = vtkKWEWidgetGroup::New();
+    currentPaintWidget = vtkKWEPaintbrushWidget::New();
+    currentPaintWidget->SetInteractor( view2d->GetInteractor());
+    //vtkKWEPaintbrushRepresentation2D * rep = vtkKWEPaintbrushRepresentation2D::SafeDownCast(currentPaintWidget->GetRepresentation());
+    vtkKWEPaintbrushRepresentation2D * rep = vtkKWEPaintbrushRepresentation2D::New();
+    currentPaintWidget->SetRepresentation(rep);
+    if (rep)
+      {
+        vtkImageActor * imageActor = view2d->GetImageActor(0);
+        vtkImageData * imageData = view2d->GetInput();
+      rep->SetImageActor(imageActor);
+      rep->SetImageData(imageData);
+      rep->GetPaintbrushOperation()->GetPaintbrushShape()->SetSpacing(
+          imageData->GetSpacing() );
+      rep->GetPaintbrushOperation()->GetPaintbrushShape()->SetOrigin(
+          imageData->GetOrigin() );
+      }
 
-  /*  if (!checked )
+    currentPaintWidget->SetPaintbrushMode( vtkKWEPaintbrushWidget::Edit );
+    setOfWidget->AddWidget(currentPaintWidget);
+    vtkKWEPaintbrushDrawing * drawing = rep->GetPaintbrushDrawing();
+    drawing->SetRepresentationToBinary();
+    rep->SetSingleSliceThickBrush(true);
+    
+    //// Our internal representation will be to manage a label map.
+    //drawing->SetRepresentationToLabel();
+
+    //// This will allocate our canvas based on the size of the overlay image
+    //// that was set on the WidgetRepresentation.
+    //drawing->InitializeData();
+
+    //// Clear the drawing and start on a clean slate. The drawing would have
+    //// automatically created 1 empty sketch for us, so we can start drawing
+    //// right away. Let's remove it, since we'd like to initialize the drawing
+    //// with our IBSR label map.
+    //drawing->RemoveAllItems();
+    
+    /*  if (!checked )
     {
-        this->m_viewFilter->removeFromAllViews();
-        m_paintState = (PaintState::None);
-        updateButtons();
-        return;
+    this->m_viewFilter->removeFromAllViews();
+    m_paintState = (PaintState::None);
+    updateButtons();
+    return;
     }
     else
     {

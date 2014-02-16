@@ -42,11 +42,9 @@
 #include "vtkInformationExecutivePortVectorKey.h"
 #include "vtkAlgorithmOutput.h"
 #include "vtkExecutive.h"
-<<<<<<< HEAD
 #include <vtkImageActorPointPlacer.h>
 #include <vtkFocalPlanePointPlacer.cxx>
-=======
->>>>>>> b2dca81... Starting to work on vtkEdgewidgetss
+
 
 vtkCxxRevisionMacro(vtkKWEPaintbrushRepresentation2D, "1.12");
 vtkStandardNewMacro(vtkKWEPaintbrushRepresentation2D);
@@ -159,13 +157,12 @@ void vtkKWEPaintbrushRepresentation2D::SetImageActor( vtkImageActor * imageActor
     if (this->ImageActor)
       {
       // Set the actor as the placer's actor, if it is an ImageActorPointPlacer.
-<<<<<<< HEAD
-      vtkInriaImageActorPointPlacer * imageActorPointPlacer =
+vtkInriaImageActorPointPlacer * imageActorPointPlacer =
         vtkInriaImageActorPointPlacer::SafeDownCast(this->ShapePlacer);
-=======
-      vtkImageActorPointPlacer * imageActorPointPlacer =
-        vtkImageActorPointPlacer::SafeDownCast(this->ShapePlacer);
->>>>>>> b2dca81... Starting to work on vtkEdgewidgetss
+
+      //vtkImageActorPointPlacer * imageActorPointPlacer =
+      //  vtkImageActorPointPlacer::SafeDownCast(this->ShapePlacer);
+
       if (imageActorPointPlacer)
         {
         imageActorPointPlacer->SetImageActor(this->ImageActor);
@@ -408,10 +405,9 @@ int vtkKWEPaintbrushRepresentation2D::ActivateShapeOutline( int x, int y )
   displayPos[1] = y;
 
   // Compute world pos from the display pos.
-<<<<<<< HEAD
+
   dynamic_cast<vtkInriaImageActorPointPlacer*>(this->ShapePlacer)->setRenderer(this->Renderer);
-=======
->>>>>>> b2dca81... Starting to work on vtkEdgewidgetss
+
   if ( !this->ShapePlacer->ComputeWorldPosition( this->Renderer,
                                                  displayPos, worldPos,
                                                  worldOrient) )

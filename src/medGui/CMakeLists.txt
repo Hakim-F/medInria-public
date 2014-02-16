@@ -108,8 +108,7 @@ set(${PROJECT_NAME}_HEADERS_MOC
   toolboxes/medCompositeDataSetImporterSelectorToolBox.h
   toolboxes/medCompositeDataSetImporterAbstractToolBox.h
   toolboxes/medActionsToolBox.h
-  toolboxes/medRoiManagementToolBox.h
-
+  
 
   # viewContainers:
   viewContainers/medCompareViewContainer.h
@@ -218,8 +217,7 @@ set(${PROJECT_NAME}_SOURCES
   toolboxes/medCompositeDataSetImporterSelectorToolBox.cpp
   toolboxes/medCompositeDataSetImporterAbstractToolBox.cpp
   toolboxes/medActionsToolBox.cpp
-  toolboxes/medRoiManagementToolBox.cpp
-
+  
 
   # viewContainers:
   viewContainers/medCompareViewContainer.cpp

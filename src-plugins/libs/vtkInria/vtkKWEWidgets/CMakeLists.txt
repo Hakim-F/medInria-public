@@ -123,13 +123,10 @@ set(KIT_LIBS vtkWidgets
              vtkRendering
              vtkFiltering
              vtkCommon
-<<<<<<< HEAD
              vtkImaging 
              vtkWidgetsAddOn
-             )
-=======
              vtkImaging )
->>>>>>> b2dca81... Starting to work on vtkEdgewidgetss
+
 IF(VTKEdge_USE_ITK)
   set (KIT_LIBS ${KIT_LIBS} ITKCommon ITKBasicFilters )
 ENDIF(VTKEdge_USE_ITK)
