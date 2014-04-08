@@ -73,7 +73,6 @@ private:
     QDoubleSpinBox * _sizeOfPoints;
     QLabel * _coordsOfPoint;
     double _pointPicked[3];
-    vtkSmartPointer<MouseInteractorStylePP> _style;
 };
 
 // Define interaction style

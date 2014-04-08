@@ -108,9 +108,6 @@ meshModifyToolBox::meshModifyToolBox(QWidget * parent)
     w->layout()->addWidget(w2);
     w->layout()->addWidget(_coordsOfPoint);
     _pointPicker = vtkSmartPointer<vtkPointPicker>::New();
-    _style = vtkSmartPointer<MouseInteractorStylePP>::New();
-    _style->setToolBox(this);
-
 }
 
 
@@ -154,7 +151,9 @@ void meshModifyToolBox::update(dtkAbstractView * view)
     _view->interactor()->SetPicker(_pointPicker);
     if (_view->property("Orientation")=="3D")
     {   
-        _view->view3d()->GetInteractor()->SetInteractorStyle( _style );
+        vtkSmartPointer<MouseInteractorStylePP> style1 = vtkSmartPointer<MouseInteractorStylePP>::New();
+        style1->setToolBox(this);
+        _view->view3d()->GetInteractor()->SetInteractorStyle( style1 );
         if (!_view->view3d()->HasObserver(vtkImageView::CurrentPointChangedEvent))
             _view->view3d()->AddObserver ( vtkImageView::CurrentPointChangedEvent, reinterpret_cast<vtkCommand*>(_view->observer()), 0 );
     }
@@ -366,7 +365,9 @@ void meshModifyToolBox::reSetInteractorStyle(QString key, QString value)
     
     if (value=="3D" && (_view->property("Orientation")=="3D"))
     {
-       _view->view3d()->GetInteractor()->SetInteractorStyle( _style );
+        vtkSmartPointer<MouseInteractorStylePP> style1 = vtkSmartPointer<MouseInteractorStylePP>::New();
+        style1->setToolBox(this);
+        _view->view3d()->GetInteractor()->SetInteractorStyle( style1 );
         if (!_view->view3d()->HasObserver(vtkImageView::CurrentPointChangedEvent))
             _view->view3d()->AddObserver ( vtkImageView::CurrentPointChangedEvent, reinterpret_cast<vtkCommand*>(_view->observer()), 0 );
     }
