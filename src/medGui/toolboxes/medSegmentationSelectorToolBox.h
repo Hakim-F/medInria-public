@@ -15,7 +15,7 @@
 
 #include <medToolBox.h>
 #include <medGuiExport.h>
-
+#include <medAbstractWorkspace.h>
 class medViewEventFilter;
 class medSegmentationAbstractToolBox;
 class medAbstractProcess;
@@ -33,6 +33,8 @@ public:
     ~medSegmentationSelectorToolBox();
 
      medSegmentationAbstractToolBox* currentToolBox();
+
+     void setWorkspace(medAbstractWorkspace*);
 
 signals:
      void installEventFilterRequest(medViewEventFilter *filter);

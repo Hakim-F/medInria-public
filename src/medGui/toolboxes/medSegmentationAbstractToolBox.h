@@ -15,6 +15,7 @@
 
 #include <medToolBox.h>
 #include <medGuiExport.h>
+#include <medAbstractWorkspace.h>
 
 class medAbstractData;
 class medSegmentationSelectorToolBox;
@@ -33,6 +34,12 @@ public:
     virtual dtkPlugin* plugin() = 0;
 
     virtual medAbstractData *processOutput() = 0;
+
+    virtual void setWorkspace(medAbstractWorkspace*);
+    medAbstractWorkspace * getWorkspace();
+
+signals:
+    void success();
 
 protected:
     //! Get the segmentationToolbox (usually one instance)

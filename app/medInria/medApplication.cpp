@@ -125,7 +125,7 @@ medApplication::medApplication(int & argc, char**argv) :
     this->setApplicationVersion(MEDINRIA_VERSION);
     this->setOrganizationName("inria");
     this->setOrganizationDomain("fr");
-    this->setWindowIcon(QIcon(":/medInria.ico"));
+    this->setWindowIcon(QIcon(":VP2HFsmall.png"));
 
     d->fixSettingsPath(this->organizationName(),this->applicationName());
 
@@ -237,9 +237,9 @@ void medApplication::registerToFactories()
     // Registering different workspaces
     medWorkspaceFactory * viewerWSpaceFactory = medWorkspaceFactory::instance();
     viewerWSpaceFactory->registerWorkspace<medVisualizationWorkspace>();
-    viewerWSpaceFactory->registerWorkspace<medRegistrationWorkspace>();
-    viewerWSpaceFactory->registerWorkspace<medDiffusionWorkspace>();
-    viewerWSpaceFactory->registerWorkspace<medFilteringWorkspace>();
+    //viewerWSpaceFactory->registerWorkspace<medRegistrationWorkspace>();
+    //viewerWSpaceFactory->registerWorkspace<medDiffusionWorkspace>();
+    //viewerWSpaceFactory->registerWorkspace<medFilteringWorkspace>();
     viewerWSpaceFactory->registerWorkspace<medSegmentationWorkspace>();
 
     //Register settingsWidgets
