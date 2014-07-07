@@ -524,7 +524,7 @@ void medAbstractDatabaseImporter::importData()
     // Now, populate the database
    medDataIndex index = this->populateDatabaseAndGenerateThumbnails (  d->data, thumb_dir );
 
-    emit progress(this, 100);
+    //emit progress(this, 100);
     emit success(this);
 
     if (d->callerUuid == "")

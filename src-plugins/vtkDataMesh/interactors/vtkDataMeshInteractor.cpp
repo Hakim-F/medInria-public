@@ -38,6 +38,7 @@
 #include <vtkMetaDataSet.h>
 #include <vtkMetaDataSetSequence.h>
 #include <vtkDataArrayCollection.h>
+#include <vtkScalarBarActor.h>
 
 #include <dtkLog/dtkLog.h>
 
@@ -372,6 +373,7 @@ void vtkDataMeshInteractor::setAttribute(const QString & attributeName)
 
             d->attribute = attributes->GetArray(qPrintable(attributeName));
             attributes->SetActiveScalars(qPrintable(attributeName));
+            d->metaDataSet->SetCurrentActiveArray(attributes->GetArray(qPrintable(attributeName)));
 
             d->LUTParam->show();
         }
@@ -476,8 +478,13 @@ void vtkDataMeshInteractor::setLut(vtkLookupTable * lut)
 
     mapper2d->SetLookupTable(lut);
     mapper2d->UseLookupTableScalarRangeOn();
+    mapper2d->InterpolateScalarsBeforeMappingOn();
     mapper3d->SetLookupTable(lut);
     mapper3d->UseLookupTableScalarRangeOn();
+    mapper3d->InterpolateScalarsBeforeMappingOn();
+
+    d->view2d->GetScalarBar()->SetLookupTable(lut);
+    d->view3d->GetScalarBar()->SetLookupTable(lut);
 }
 
 
